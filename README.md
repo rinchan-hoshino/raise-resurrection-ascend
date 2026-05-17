@@ -1,8 +1,8 @@
-# Downed Revival
+# 复活 & 复生 & 生辰
 
 **Give players a configurable downed state before final death.**
 
-Downed Revival keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state for a configurable duration.
+复活 & 复生 & 生辰 keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state for a configurable duration.
 
 ## Default behavior
 
