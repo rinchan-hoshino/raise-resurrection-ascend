@@ -47,7 +47,7 @@ public final class DownedRevival {
                 DOWNED_UNTIL_TICK.remove(playerId);
                 continue;
             }
-            player.setHealth(Math.max(DOWNED_HEALTH, player.getHealth()));
+            player.setHealth(DOWNED_HEALTH);
             forceCrawling(player);
             if (now >= until) {
                 dieNow(player);

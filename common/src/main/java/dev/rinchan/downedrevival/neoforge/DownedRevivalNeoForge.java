@@ -65,7 +65,7 @@ public class DownedRevivalNeoForge {
             return;
         }
         if (DownedRevival.shouldEnterDowned(player, event.getNewDamage())) {
-            event.setNewDamage(Math.max(0F, player.getHealth() - 1.0F));
+            event.setNewDamage(0F);
             DownedRevival.enterDowned(player);
         }
     }
