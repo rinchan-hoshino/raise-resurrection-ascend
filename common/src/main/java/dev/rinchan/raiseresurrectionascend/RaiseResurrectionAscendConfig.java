@@ -1,9 +1,9 @@
-package dev.rinchan.downedrevival;
+package dev.rinchan.raiseresurrectionascend;
 
 import java.util.List;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-public final class DownedRevivalConfig {
+public final class RaiseResurrectionAscendConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.IntValue downedDurationTicks;
@@ -39,6 +39,6 @@ public final class DownedRevivalConfig {
         SPEC = builder.build();
     }
 
-    private DownedRevivalConfig() {
+    private RaiseResurrectionAscendConfig() {
     }
 }

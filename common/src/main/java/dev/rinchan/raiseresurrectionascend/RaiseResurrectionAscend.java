@@ -1,4 +1,4 @@
-package dev.rinchan.downedrevival;
+package dev.rinchan.raiseresurrectionascend;
 
 import java.util.Map;
 import java.util.Set;
@@ -16,13 +16,13 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public final class DownedRevival {
-    public static final String MOD_ID = "downed_revival";
+public final class RaiseResurrectionAscend {
+    public static final String MOD_ID = "raise_resurrection_ascend";
     private static final float DOWNED_HEALTH = 1.0F;
     private static final Map<UUID, Integer> DOWNED_UNTIL_TICK = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
 
-    private DownedRevival() {
+    private RaiseResurrectionAscend() {
     }
 
     public static boolean isDowned(ServerPlayer player) {
@@ -30,7 +30,7 @@ public final class DownedRevival {
     }
 
     public static void enterDowned(ServerPlayer player) {
-        DOWNED_UNTIL_TICK.put(player.getUUID(), player.server.getTickCount() + DownedRevivalConfig.downedDurationTicks.get());
+        DOWNED_UNTIL_TICK.put(player.getUUID(), player.server.getTickCount() + RaiseResurrectionAscendConfig.downedDurationTicks.get());
         player.setHealth(DOWNED_HEALTH);
         forceCrawling(player);
     }
@@ -75,7 +75,7 @@ public final class DownedRevival {
         if (!isReviveItem(stack)) {
             return false;
         }
-        if (DownedRevivalConfig.consumeReviveItem.get() && !rescuer.getAbilities().instabuild) {
+        if (RaiseResurrectionAscendConfig.consumeReviveItem.get() && !rescuer.getAbilities().instabuild) {
             stack.shrink(1);
         }
         reviveWithTotemEffects(downed);
@@ -83,7 +83,7 @@ public final class DownedRevival {
     }
 
     public static boolean tryKillRevive(ServerPlayer killer) {
-        if (!DownedRevivalConfig.enableKillRevive.get() || !isDowned(killer)) {
+        if (!RaiseResurrectionAscendConfig.enableKillRevive.get() || !isDowned(killer)) {
             return false;
         }
         reviveWithTotemEffects(killer);
@@ -138,7 +138,7 @@ public final class DownedRevival {
             return false;
         }
         String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        for (String configuredId : DownedRevivalConfig.reviveItems.get()) {
+        for (String configuredId : RaiseResurrectionAscendConfig.reviveItems.get()) {
             if (configuredId.trim().equals(itemId)) {
                 return true;
             }

@@ -44,6 +44,8 @@ neoForge {
         }
         configureEach {
             logLevel = org.slf4j.event.Level.INFO
+            systemProperty 'raiseResurrectionAscend.screenshot', System.getProperty('raiseResurrectionAscend.screenshot', 'false')
+            systemProperty 'raiseResurrectionAscend.screenshot.dir', System.getProperty('raiseResurrectionAscend.screenshot.dir', '')
         }
     }
 }

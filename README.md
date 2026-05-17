@@ -1,8 +1,8 @@
-# 复活 & 复生 & 生辰
+# Raise & Resurrection & Ascend
 
 **Give players a configurable downed state before final death.**
 
-复活 & 复生 & 生辰 keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state for a configurable duration.
+Raise & Resurrection & Ascend keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state for a configurable duration.
 
 ## Default behavior
 
@@ -13,14 +13,14 @@
 - Totem revival consumes one totem unless the rescuer is in creative mode.
 - Kill-to-revive is available but disabled by default.
 - Holding G for 2 seconds gives up and triggers final death.
-- `/downed_revival revive <targets>` lets datapack functions, commands, or pack mechanics revive downed players.
+- `/raise_resurrection_ascend revive <targets>` lets datapack functions, commands, or pack mechanics revive downed players.
 
 ## Configuration
 
 Config file:
 
 ```text
-config/downed_revival-common.toml
+config/raise_resurrection_ascend-common.toml
 ```
 
 Default values:
