@@ -8,6 +8,7 @@ import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
 import dev.rinchan.raiseresurrectionascend.client.ScreenshotClientHarness;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
@@ -18,6 +19,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -28,6 +30,7 @@ public class RaiseResurrectionAscendNeoForge {
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, RaiseResurrectionAscendConfig.SPEC);
         modBus.addListener(this::registerPayloads);
         NeoForge.EVENT_BUS.addListener(this::onLivingDamagePre);
+        NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
@@ -67,6 +70,16 @@ public class RaiseResurrectionAscendNeoForge {
         if (RaiseResurrectionAscend.shouldEnterDowned(player, event.getNewDamage())) {
             event.setNewDamage(0F);
             RaiseResurrectionAscend.enterDowned(player);
+        }
+    }
+
+    private void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        if (!(event.getEntity() instanceof ServerPlayer feeder) || !(event.getTarget() instanceof ServerPlayer target)) {
+            return;
+        }
+        if (RaiseResurrectionAscend.tryFeedRecoveryPotion(feeder, target, event.getHand())) {
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            event.setCanceled(true);
         }
     }
 

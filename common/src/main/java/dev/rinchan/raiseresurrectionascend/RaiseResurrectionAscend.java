@@ -4,9 +4,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.level.gameevent.GameEvent;
 
 public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
@@ -76,6 +87,53 @@ public final class RaiseResurrectionAscend {
         }
         player.setHealth(player.getMaxHealth());
         return recoverIfFullyHealed(player);
+    }
+
+    public static boolean tryFeedRecoveryPotion(ServerPlayer feeder, ServerPlayer target, InteractionHand hand) {
+        ItemStack potionStack = feeder.getItemInHand(hand);
+        PotionContents contents = potionStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        boolean hasRecoveryEffect = false;
+        for (MobEffectInstance effect : contents.getAllEffects()) {
+            if (effect.getEffect().is(MobEffects.HEAL) || effect.getEffect().is(MobEffects.REGENERATION)) {
+                hasRecoveryEffect = true;
+                break;
+            }
+        }
+
+        PotionFeedingPolicy.Result result = PotionFeedingPolicy.resolve(
+            isDowned(target),
+            potionStack.is(Items.POTION),
+            hasRecoveryEffect,
+            potionStack.getCount(),
+            feeder.hasInfiniteMaterials()
+        );
+        if (!result.accepted()) {
+            return false;
+        }
+
+        contents.forEachEffect(effect -> {
+            if (effect.getEffect().value().isInstantenous()) {
+                effect.getEffect().value().applyInstantenousEffect(feeder, feeder, target, effect.getAmplifier(), 1.0);
+            } else {
+                target.addEffect(effect);
+            }
+        });
+
+        if (!feeder.hasInfiniteMaterials()) {
+            potionStack.shrink(1);
+            ItemStack bottle = new ItemStack(Items.GLASS_BOTTLE);
+            if (potionStack.isEmpty()) {
+                feeder.setItemInHand(hand, bottle);
+            } else if (!feeder.getInventory().add(bottle)) {
+                feeder.drop(bottle, false);
+            }
+        }
+
+        feeder.awardStat(Stats.ITEM_USED.get(Items.POTION));
+        target.level().playSound(null, target.getX(), target.getY(), target.getZ(), SoundEvents.GENERIC_DRINK, SoundSource.PLAYERS, 0.5F, 1.0F);
+        target.gameEvent(GameEvent.DRINK);
+        recoverIfFullyHealed(target);
+        return true;
     }
 
     public static void giveUp(ServerPlayer player) {
