@@ -2,18 +2,18 @@
 
 **Give players a configurable downed state before final death.**
 
-Raise & Resurrection & Ascend keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state for a configurable duration.
+Raise & Resurrection & Ascend keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state for a configurable duration and must be healed back to full health before they can stand again.
 
 ## Default behavior
 
 - Lethal damage puts the player into a downed state instead of killing them immediately.
-- Downed players are forced into the crawling/swimming pose and stay at 1 health.
+- A downed player starts at 1 health and remains crawling.
+- Healing, regeneration and instant-health effects continue to affect downed players.
+- Reaching full health ends the downed state; partial healing does not.
 - The downed state lasts 600 ticks, or 30 seconds, by default.
-- Other players can right-click a downed player with a totem of undying to revive them.
-- Totem revival consumes one totem unless the rescuer is in creative mode.
-- Kill-to-revive is available but disabled by default.
+- The mod does not use, consume or imitate a totem of undying.
 - Holding G for 2 seconds gives up and triggers final death.
-- `/raise_resurrection_ascend revive <targets>` lets datapack functions, commands, or pack mechanics revive downed players.
+- `/raise_resurrection_ascend revive <targets>` is an administrator override that fills the targets' health and ends their downed state.
 
 ## Configuration
 
@@ -29,11 +29,6 @@ Default values:
 [downed]
 downedDurationTicks = 600
 giveUpHoldTicks = 40
-
-[revival]
-reviveItems = ["minecraft:totem_of_undying"]
-consumeReviveItem = true
-enableKillRevive = false
 ```
 
 ## Requirements

@@ -4,17 +4,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
@@ -47,7 +39,9 @@ public final class RaiseResurrectionAscend {
                 DOWNED_UNTIL_TICK.remove(playerId);
                 continue;
             }
-            player.setHealth(DOWNED_HEALTH);
+            if (recoverIfFullyHealed(player)) {
+                continue;
+            }
             forceCrawling(player);
             if (now >= until) {
                 dieNow(player);
@@ -67,46 +61,21 @@ public final class RaiseResurrectionAscend {
         FINAL_DEATH.remove(player.getUUID());
     }
 
-    public static boolean tryReviveWithItem(ServerPlayer rescuer, ServerPlayer downed, InteractionHand hand) {
-        if (!isDowned(downed)) {
-            return false;
-        }
-        ItemStack stack = rescuer.getItemInHand(hand);
-        if (!isReviveItem(stack)) {
-            return false;
-        }
-        if (RaiseResurrectionAscendConfig.consumeReviveItem.get() && !rescuer.getAbilities().instabuild) {
-            stack.shrink(1);
-        }
-        reviveWithTotemEffects(downed);
-        return true;
-    }
-
-    public static boolean tryKillRevive(ServerPlayer killer) {
-        if (!RaiseResurrectionAscendConfig.enableKillRevive.get() || !isDowned(killer)) {
-            return false;
-        }
-        reviveWithTotemEffects(killer);
-        return true;
-    }
-
-    public static boolean reviveWithTotemEffects(ServerPlayer player) {
-        if (!isDowned(player)) {
+    public static boolean recoverIfFullyHealed(ServerPlayer player) {
+        if (!isDowned(player) || !DownedRecoveryPolicy.isFullyHealed(player.getHealth(), player.getMaxHealth())) {
             return false;
         }
         DOWNED_UNTIL_TICK.remove(player.getUUID());
         player.setPose(Pose.STANDING);
-        player.setHealth(1.0F);
-        player.removeAllEffects();
-        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 900, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 800, 0));
-        player.level().broadcastEntityEvent(player, (byte) 35);
         return true;
     }
 
     public static boolean reviveByCommand(ServerPlayer player) {
-        return reviveWithTotemEffects(player);
+        if (!isDowned(player)) {
+            return false;
+        }
+        player.setHealth(player.getMaxHealth());
+        return recoverIfFullyHealed(player);
     }
 
     public static void giveUp(ServerPlayer player) {
@@ -131,18 +100,5 @@ public final class RaiseResurrectionAscend {
     private static void forceCrawling(ServerPlayer player) {
         player.setPose(Pose.SWIMMING);
         player.setSprinting(false);
-    }
-
-    private static boolean isReviveItem(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-        String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        for (String configuredId : RaiseResurrectionAscendConfig.reviveItems.get()) {
-            if (configuredId.trim().equals(itemId)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

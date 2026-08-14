@@ -61,7 +61,7 @@ public final class ScreenshotClientHarness {
         }
         if (!secondCaptured && inWorldTicks >= 260) {
             minecraft.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
-            save(minecraft, "raise-resurrection-ascend-totem-ready.png");
+            save(minecraft, "raise-resurrection-ascend-downed-front.png");
             secondCaptured = true;
         }
         if ((secondCaptured && inWorldTicks >= 320) || inWorldTicks >= 700) {

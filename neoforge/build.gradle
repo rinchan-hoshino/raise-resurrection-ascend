@@ -10,6 +10,17 @@ base {
 
 sourceSets.main.java.srcDir rootProject.file('common/src/main/java')
 sourceSets.main.resources.srcDir rootProject.file('common/src/main/resources')
+sourceSets.test.java.srcDir rootProject.file('common/src/test/java')
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
 sourceSets.main.resources.srcDir tasks.register('generateModMetadata', ProcessResources) {
     def replaceProperties = [
         minecraft_version_range: rootProject.minecraft_version_range,

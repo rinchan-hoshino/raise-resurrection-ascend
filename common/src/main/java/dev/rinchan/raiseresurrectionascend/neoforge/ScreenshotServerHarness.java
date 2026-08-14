@@ -4,8 +4,6 @@ import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.NeoForge;
@@ -40,7 +38,6 @@ final class ScreenshotServerHarness {
         }
         player.setGameMode(GameType.SURVIVAL);
         player.getInventory().clearContent();
-        player.getInventory().setItem(0, new ItemStack(Items.TOTEM_OF_UNDYING));
         player.setPos(base.getX() + 0.5, base.getY() + 1, base.getZ() + 0.5);
         player.setYRot(35.0F);
         player.setXRot(15.0F);
