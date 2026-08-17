@@ -13,8 +13,8 @@ public final class RaiseResurrectionAscendConfig {
 
         builder.push("downed");
         downedDurationTicks = builder
-            .comment("Ticks before a downed player dies. 600 ticks = 30 seconds.")
-            .defineInRange("downedDurationTicks", 600, 1, 20 * 60 * 60);
+            .comment("Ticks before a downed player dies. 6000 ticks = 5 minutes.")
+            .defineInRange("downedDurationTicks", 6000, 1, 20 * 60 * 60);
         giveUpHoldTicks = builder
             .comment("Client key hold time before giving up. 40 ticks = 2 seconds.")
             .defineInRange("giveUpHoldTicks", 40, 1, 20 * 60);

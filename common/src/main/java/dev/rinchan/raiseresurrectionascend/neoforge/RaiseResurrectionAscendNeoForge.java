@@ -4,6 +4,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendConfig;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpPacket;
+import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
 import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
 import dev.rinchan.raiseresurrectionascend.client.ScreenshotClientHarness;
 import net.minecraft.commands.Commands;
@@ -54,6 +55,9 @@ public class RaiseResurrectionAscendNeoForge {
                 }
             }).exceptionally(throwable -> null);
         });
+        registrar.playToClient(RaiseResurrectionAscendStatePacket.TYPE, RaiseResurrectionAscendStatePacket.CODEC, (packet, context) ->
+            context.enqueueWork(() -> RaiseResurrectionAscendClient.applyState(packet)).exceptionally(throwable -> null)
+        );
     }
 
     private void onLivingDamagePre(LivingDamageEvent.Pre event) {
@@ -77,7 +81,7 @@ public class RaiseResurrectionAscendNeoForge {
         if (!(event.getEntity() instanceof ServerPlayer feeder) || !(event.getTarget() instanceof ServerPlayer target)) {
             return;
         }
-        if (RaiseResurrectionAscend.tryFeedRecoveryPotion(feeder, target, event.getHand())) {
+        if (RaiseResurrectionAscend.tryFeedRecoveryItem(feeder, target, event.getHand())) {
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
         }
