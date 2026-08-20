@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,12 +11,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -25,6 +22,7 @@ public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
     private static final float DOWNED_HEALTH = 1.0F;
     private static final Map<UUID, Integer> DOWNED_UNTIL_TICK = new ConcurrentHashMap<>();
+    private static final Map<UUID, DamageSource> DOWNING_SOURCES = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
 
     private RaiseResurrectionAscend() {
@@ -34,9 +32,10 @@ public final class RaiseResurrectionAscend {
         return DOWNED_UNTIL_TICK.containsKey(player.getUUID());
     }
 
-    public static void enterDowned(ServerPlayer player) {
+    public static void enterDowned(ServerPlayer player, DamageSource damageSource) {
         int durationTicks = RaiseResurrectionAscendConfig.downedDurationTicks.get();
         DOWNED_UNTIL_TICK.put(player.getUUID(), player.server.getTickCount() + durationTicks);
+        DOWNING_SOURCES.put(player.getUUID(), damageSource);
         player.setHealth(DOWNED_HEALTH);
         beginCrawling(player);
         syncState(player, true, durationTicks);
@@ -105,8 +104,9 @@ public final class RaiseResurrectionAscend {
     public static boolean tryFeedRecoveryItem(ServerPlayer feeder, ServerPlayer target, InteractionHand hand) {
         ItemStack itemStack = feeder.getItemInHand(hand);
         var fedItem = itemStack.getItem();
-        PotionContents potionContents = itemStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
-        RecoveryFeedingPolicy.ItemKind itemKind = recoveryItemKind(itemStack, potionContents);
+        RecoveryFeedingPolicy.ItemKind itemKind = itemStack.is(Items.APPLE)
+            ? RecoveryFeedingPolicy.ItemKind.APPLE
+            : RecoveryFeedingPolicy.ItemKind.UNSUPPORTED;
         RecoveryFeedingPolicy.Result result = RecoveryFeedingPolicy.resolve(
             isDowned(target),
             itemKind,
@@ -117,38 +117,23 @@ public final class RaiseResurrectionAscend {
             return false;
         }
 
-        if (itemKind == RecoveryFeedingPolicy.ItemKind.RECOVERY_POTION) {
-            applyPotionContents(feeder, target, potionContents);
-        } else {
-            target.eat(target.level(), itemStack.copyWithCount(1));
-        }
-
+        target.heal(result.healing());
         if (!feeder.hasInfiniteMaterials()) {
             itemStack.shrink(1);
-            if (result.returnBottle()) {
-                ItemStack bottle = new ItemStack(Items.GLASS_BOTTLE);
-                if (itemStack.isEmpty()) {
-                    feeder.setItemInHand(hand, bottle);
-                } else if (!feeder.getInventory().add(bottle)) {
-                    feeder.drop(bottle, false);
-                }
-            }
         }
 
         feeder.awardStat(Stats.ITEM_USED.get(fedItem));
-        if (itemKind == RecoveryFeedingPolicy.ItemKind.RECOVERY_POTION) {
-            target.level().playSound(
-                null,
-                target.getX(),
-                target.getY(),
-                target.getZ(),
-                SoundEvents.GENERIC_DRINK,
-                SoundSource.PLAYERS,
-                0.5F,
-                1.0F
-            );
-            target.gameEvent(GameEvent.DRINK);
-        }
+        target.level().playSound(
+            null,
+            target.getX(),
+            target.getY(),
+            target.getZ(),
+            SoundEvents.GENERIC_EAT,
+            SoundSource.PLAYERS,
+            0.5F,
+            1.0F
+        );
+        target.gameEvent(GameEvent.EAT);
         recoverIfFullyHealed(target);
         return true;
     }
@@ -161,44 +146,29 @@ public final class RaiseResurrectionAscend {
 
     public static void clearPlayer(ServerPlayer player) {
         DOWNED_UNTIL_TICK.remove(player.getUUID());
+        DOWNING_SOURCES.remove(player.getUUID());
         FINAL_DEATH.remove(player.getUUID());
         clearForcedCrawling(player);
     }
 
-    private static RecoveryFeedingPolicy.ItemKind recoveryItemKind(ItemStack stack, PotionContents contents) {
-        if (stack.is(Items.GOLDEN_APPLE)) {
-            return RecoveryFeedingPolicy.ItemKind.GOLDEN_APPLE;
-        }
-        if (stack.is(Items.ENCHANTED_GOLDEN_APPLE)) {
-            return RecoveryFeedingPolicy.ItemKind.ENCHANTED_GOLDEN_APPLE;
-        }
-        if (!stack.is(Items.POTION)) {
-            return RecoveryFeedingPolicy.ItemKind.UNSUPPORTED;
-        }
-        for (MobEffectInstance effect : contents.getAllEffects()) {
-            if (effect.getEffect().is(MobEffects.HEAL) || effect.getEffect().is(MobEffects.REGENERATION)) {
-                return RecoveryFeedingPolicy.ItemKind.RECOVERY_POTION;
-            }
-        }
-        return RecoveryFeedingPolicy.ItemKind.UNSUPPORTED;
-    }
-
-    private static void applyPotionContents(ServerPlayer feeder, ServerPlayer target, PotionContents contents) {
-        contents.forEachEffect(effect -> {
-            if (effect.getEffect().value().isInstantenous()) {
-                effect.getEffect().value().applyInstantenousEffect(feeder, feeder, target, effect.getAmplifier(), 1.0);
-            } else {
-                target.addEffect(effect);
-            }
-        });
+    public static void finishDownedFromDamage(ServerPlayer player) {
+        dieNow(player);
     }
 
     private static void dieNow(ServerPlayer player) {
+        DamageSource downingSource = DOWNING_SOURCES.getOrDefault(
+            player.getUUID(),
+            player.damageSources().genericKill()
+        );
+        player.getCombatTracker().recordDamage(downingSource, player.getHealth());
         clearDownedState(player);
         FINAL_DEATH.add(player.getUUID());
-        player.setHealth(DOWNED_HEALTH);
-        player.hurt(player.damageSources().genericKill(), Float.MAX_VALUE);
-        FINAL_DEATH.remove(player.getUUID());
+        try {
+            player.setHealth(0.0F);
+            player.die(downingSource);
+        } finally {
+            FINAL_DEATH.remove(player.getUUID());
+        }
     }
 
     private static void beginCrawling(ServerPlayer player) {
@@ -209,6 +179,7 @@ public final class RaiseResurrectionAscend {
 
     private static void clearDownedState(ServerPlayer player) {
         DOWNED_UNTIL_TICK.remove(player.getUUID());
+        DOWNING_SOURCES.remove(player.getUUID());
         clearForcedCrawling(player);
         syncState(player, false, 0);
     }

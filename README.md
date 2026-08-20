@@ -9,7 +9,8 @@ Raise & Resurrection & Ascend keeps a player from dying immediately when lethal 
 - Lethal damage puts the player into a downed state instead of killing them immediately.
 - A downed player starts at 1 health and remains crawling.
 - Healing, regeneration and instant-health effects continue to affect downed players.
-- Another player can right-click a downed player with an ordinary drinkable Healing or Regeneration potion, Golden Apple, or Enchanted Golden Apple to feed it to them. Survival consumes the item; potion feeding returns a glass bottle. Creative consumes nothing.
+- Downed players continue to take normal damage. A lethal follow-up, timeout, or give-up keeps the DamageSource that originally downed them for death messages and death-event consumers.
+- Another player can right-click a downed player with an ordinary Apple to restore exactly 2 health (one heart). Survival consumes one Apple; Creative consumes nothing. Potions and golden apples are no longer special feeding inputs.
 - Reaching full health ends the downed state; partial healing does not.
 - The downed player sees a persistent HUD with the recovery rule, remaining time, and bound give-up key.
 - The downed state lasts 6000 ticks, or 5 minutes, by default.

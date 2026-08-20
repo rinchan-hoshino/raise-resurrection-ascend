@@ -8,65 +8,51 @@ import org.junit.jupiter.api.Test;
 
 final class RecoveryFeedingPolicyTest {
     @Test
-    void recoveryPotionIsConsumedAndReturnsABottle() {
-        RecoveryFeedingPolicy.Result result = RecoveryFeedingPolicy.resolve(
-            true,
-            RecoveryFeedingPolicy.ItemKind.RECOVERY_POTION,
-            2,
-            false
-        );
+    void ordinaryAppleHealsExactlyOneHeartAndConsumesOneItem() {
+        var result = RecoveryFeedingPolicy.resolve(
+                true,
+                RecoveryFeedingPolicy.ItemKind.APPLE,
+                4,
+                false);
 
         assertTrue(result.accepted());
-        assertEquals(1, result.remainingItems());
-        assertTrue(result.returnBottle());
+        assertEquals(2.0F, result.healing());
+        assertEquals(3, result.remainingCount());
     }
 
     @Test
-    void eitherGoldenAppleIsConsumedWithoutAContainer() {
-        for (RecoveryFeedingPolicy.ItemKind kind : new RecoveryFeedingPolicy.ItemKind[] {
-            RecoveryFeedingPolicy.ItemKind.GOLDEN_APPLE,
-            RecoveryFeedingPolicy.ItemKind.ENCHANTED_GOLDEN_APPLE
-        }) {
-            RecoveryFeedingPolicy.Result result = RecoveryFeedingPolicy.resolve(true, kind, 1, false);
-            assertTrue(result.accepted(), kind.name());
-            assertEquals(0, result.remainingItems(), kind.name());
-            assertFalse(result.returnBottle(), kind.name());
-        }
-    }
-
-    @Test
-    void creativeFeedingConsumesNothing() {
-        RecoveryFeedingPolicy.Result result = RecoveryFeedingPolicy.resolve(
-            true,
-            RecoveryFeedingPolicy.ItemKind.ENCHANTED_GOLDEN_APPLE,
-            1,
-            true
-        );
+    void creativeFeedingDoesNotConsumeTheApple() {
+        var result = RecoveryFeedingPolicy.resolve(
+                true,
+                RecoveryFeedingPolicy.ItemKind.APPLE,
+                1,
+                true);
 
         assertTrue(result.accepted());
-        assertEquals(1, result.remainingItems());
-        assertFalse(result.returnBottle());
+        assertEquals(2.0F, result.healing());
+        assertEquals(1, result.remainingCount());
     }
 
     @Test
-    void unsupportedItemsAndStandingTargetsAreRejected() {
+    void unsupportedItemsStandingTargetsAndEmptyStacksAreRejected() {
+        var unsupported = RecoveryFeedingPolicy.resolve(
+                true,
+                RecoveryFeedingPolicy.ItemKind.UNSUPPORTED,
+                2,
+                false);
+
+        assertFalse(unsupported.accepted());
+        assertEquals(0.0F, unsupported.healing());
+        assertEquals(2, unsupported.remainingCount());
         assertFalse(RecoveryFeedingPolicy.resolve(
-            true,
-            RecoveryFeedingPolicy.ItemKind.UNSUPPORTED,
-            1,
-            false
-        ).accepted());
+                false,
+                RecoveryFeedingPolicy.ItemKind.APPLE,
+                1,
+                false).accepted());
         assertFalse(RecoveryFeedingPolicy.resolve(
-            false,
-            RecoveryFeedingPolicy.ItemKind.GOLDEN_APPLE,
-            1,
-            false
-        ).accepted());
-        assertFalse(RecoveryFeedingPolicy.resolve(
-            true,
-            RecoveryFeedingPolicy.ItemKind.GOLDEN_APPLE,
-            0,
-            false
-        ).accepted());
+                true,
+                RecoveryFeedingPolicy.ItemKind.APPLE,
+                0,
+                false).accepted());
     }
 }

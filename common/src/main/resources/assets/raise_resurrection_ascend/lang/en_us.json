@@ -2,9 +2,9 @@
   "key.categories.raise_resurrection_ascend": "Raise & Resurrection & Ascend",
   "key.raise_resurrection_ascend.give_up": "Give up while downed",
   "message.raise_resurrection_ascend.downed_self": "You are downed! Wait for another player to heal you to full health, or follow the on-screen prompt to give up.",
-  "message.raise_resurrection_ascend.downed_other": "%s is downed: right-click them with a Healing/Regeneration potion, Golden Apple, or Enchanted Golden Apple, then heal them to full health.",
+  "message.raise_resurrection_ascend.downed_other": "%s is downed: right-click them with an Apple to restore one heart, then heal them to full health.",
   "message.raise_resurrection_ascend.recovered": "You are no longer downed.",
   "hud.raise_resurrection_ascend.downed": "DOWNED · %s remaining",
-  "hud.raise_resurrection_ascend.recovery": "Revive: another player must feed and heal you to full health",
+  "hud.raise_resurrection_ascend.recovery": "Revive: heal to full; an Apple restores one heart",
   "hud.raise_resurrection_ascend.give_up": "Give up: hold %s for %s seconds"
 }

@@ -41,7 +41,7 @@ final class ScreenshotServerHarness {
         player.setPos(base.getX() + 0.5, base.getY() + 1, base.getZ() + 0.5);
         player.setYRot(35.0F);
         player.setXRot(15.0F);
-        RaiseResurrectionAscend.enterDowned(player);
+        RaiseResurrectionAscend.enterDowned(player, player.damageSources().genericKill());
         prepared = true;
     }
 }
