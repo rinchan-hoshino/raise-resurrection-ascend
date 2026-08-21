@@ -20,6 +20,10 @@ class AbsorptionClockIntegrationContractTest {
         assertTrue(lifecycle.contains("DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount())"));
         assertTrue(lifecycle.contains("DownedAbsorptionPolicy.drain(player.getAbsorptionAmount())"));
         assertTrue(lifecycle.contains("player.setAbsorptionAmount(result.absorption())"));
+        assertTrue(lifecycle.contains("persistDownedState(player)"));
+        assertTrue(lifecycle.contains("public static void suspendPlayer"));
+        assertTrue(lifecycle.contains("public static void restorePlayer"));
+        assertTrue(lifecycle.contains("remainingAbsorption"));
         assertFalse(lifecycle.contains("DOWNED_UNTIL_TICK"));
         assertFalse(lifecycle.contains("downedDurationTicks"));
         assertTrue(lifecycle.contains("capacity.removeModifier(DOWNED_ABSORPTION_CAPACITY)"));

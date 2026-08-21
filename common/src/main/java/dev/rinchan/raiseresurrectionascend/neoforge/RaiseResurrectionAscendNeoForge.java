@@ -34,6 +34,7 @@ public class RaiseResurrectionAscendNeoForge {
         NeoForge.EVENT_BUS.addListener(this::onLivingDamagePre);
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
+        NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         if (Boolean.getBoolean("raiseResurrectionAscend.screenshot")) {
@@ -100,9 +101,15 @@ public class RaiseResurrectionAscendNeoForge {
         RaiseResurrectionAscend.tick(event.getServer());
     }
 
+    private void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            RaiseResurrectionAscend.restorePlayer(player);
+        }
+    }
+
     private void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            RaiseResurrectionAscend.clearPlayer(player);
+            RaiseResurrectionAscend.suspendPlayer(player);
         }
     }
 

@@ -27,6 +27,8 @@ public final class RaiseResurrectionAscend {
     private static final float DOWNED_HEALTH = 1.0F;
     private static final ResourceLocation DOWNED_ABSORPTION_CAPACITY =
         ResourceLocation.fromNamespaceAndPath(MOD_ID, "downed_absorption_capacity");
+    private static final String DOWNED_PERSISTED_TAG = MOD_ID + ":downed";
+    private static final String DOWNED_ABSORPTION_TAG = MOD_ID + ":remaining_absorption";
     private static final Map<UUID, DamageSource> DOWNING_SOURCES = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> PENDING_FINAL_DEATH = ConcurrentHashMap.newKeySet();
@@ -43,6 +45,7 @@ public final class RaiseResurrectionAscend {
         player.setHealth(DOWNED_HEALTH);
         ensureDownedAbsorptionCapacity(player);
         player.setAbsorptionAmount(DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount()));
+        persistDownedState(player);
         beginCrawling(player);
         syncState(player, true);
         player.displayClientMessage(Component.translatable("message.raise_resurrection_ascend.downed_self"), false);
@@ -75,6 +78,7 @@ public final class RaiseResurrectionAscend {
             player.setSprinting(false);
             DownedAbsorptionPolicy.DrainResult result = DownedAbsorptionPolicy.drain(player.getAbsorptionAmount());
             player.setAbsorptionAmount(result.absorption());
+            persistDownedState(player);
             if (result.expired()) {
                 dieNow(player);
             }
@@ -160,13 +164,40 @@ public final class RaiseResurrectionAscend {
         }
     }
 
-    public static void clearPlayer(ServerPlayer player) {
-        if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
-            clearDownedAbsorption(player);
+    public static void suspendPlayer(ServerPlayer player) {
+        if (isDowned(player)) {
+            persistDownedState(player);
         }
+        DOWNING_SOURCES.remove(player.getUUID());
         FINAL_DEATH.remove(player.getUUID());
         PENDING_FINAL_DEATH.remove(player.getUUID());
+        removeDownedAbsorptionCapacity(player);
         clearForcedCrawling(player);
+    }
+
+    public static void restorePlayer(ServerPlayer player) {
+        if (!player.getPersistentData().getBoolean(DOWNED_PERSISTED_TAG)) {
+            return;
+        }
+        float remainingAbsorption = player.getPersistentData().getFloat(DOWNED_ABSORPTION_TAG);
+        DOWNING_SOURCES.put(player.getUUID(), player.damageSources().genericKill());
+        player.setHealth(Math.max(DOWNED_HEALTH, player.getHealth()));
+        ensureDownedAbsorptionCapacity(player);
+        player.setAbsorptionAmount(Math.max(0.0F, remainingAbsorption));
+        beginCrawling(player);
+        syncState(player, true);
+        if (remainingAbsorption <= 0.0F) {
+            PENDING_FINAL_DEATH.add(player.getUUID());
+        }
+    }
+
+    public static void clearPlayer(ServerPlayer player) {
+        DOWNING_SOURCES.remove(player.getUUID());
+        FINAL_DEATH.remove(player.getUUID());
+        PENDING_FINAL_DEATH.remove(player.getUUID());
+        clearDownedAbsorption(player);
+        clearForcedCrawling(player);
+        clearPersistedDownedState(player);
     }
 
     public static void finishDownedFromDamage(ServerPlayer player) {
@@ -206,6 +237,7 @@ public final class RaiseResurrectionAscend {
             clearDownedAbsorption(player);
         }
         clearForcedCrawling(player);
+        clearPersistedDownedState(player);
         syncState(player, false);
     }
 
@@ -222,10 +254,24 @@ public final class RaiseResurrectionAscend {
 
     private static void clearDownedAbsorption(ServerPlayer player) {
         player.setAbsorptionAmount(0.0F);
+        removeDownedAbsorptionCapacity(player);
+    }
+
+    private static void removeDownedAbsorptionCapacity(ServerPlayer player) {
         AttributeInstance capacity = player.getAttribute(Attributes.MAX_ABSORPTION);
         if (capacity != null) {
             capacity.removeModifier(DOWNED_ABSORPTION_CAPACITY);
         }
+    }
+
+    private static void persistDownedState(ServerPlayer player) {
+        player.getPersistentData().putBoolean(DOWNED_PERSISTED_TAG, true);
+        player.getPersistentData().putFloat(DOWNED_ABSORPTION_TAG, player.getAbsorptionAmount());
+    }
+
+    private static void clearPersistedDownedState(ServerPlayer player) {
+        player.getPersistentData().remove(DOWNED_PERSISTED_TAG);
+        player.getPersistentData().remove(DOWNED_ABSORPTION_TAG);
     }
 
     private static void clearForcedCrawling(ServerPlayer player) {
