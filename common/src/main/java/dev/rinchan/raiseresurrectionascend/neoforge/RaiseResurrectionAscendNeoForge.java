@@ -65,6 +65,10 @@ public class RaiseResurrectionAscendNeoForge {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
+        if (RaiseResurrectionAscend.isPendingFinalDeath(player)) {
+            event.setNewDamage(0F);
+            return;
+        }
         if (RaiseResurrectionAscend.isFinalDeath(player)) {
             return;
         }

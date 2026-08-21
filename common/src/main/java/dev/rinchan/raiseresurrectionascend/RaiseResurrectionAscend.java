@@ -23,6 +23,7 @@ public final class RaiseResurrectionAscend {
     private static final float DOWNED_HEALTH = 1.0F;
     private static final Map<UUID, DamageSource> DOWNING_SOURCES = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> PENDING_FINAL_DEATH = ConcurrentHashMap.newKeySet();
 
     private RaiseResurrectionAscend() {
     }
@@ -50,6 +51,10 @@ public final class RaiseResurrectionAscend {
 
     public static void tick(MinecraftServer server) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            if (PENDING_FINAL_DEATH.remove(player.getUUID())) {
+                dieNow(player);
+                continue;
+            }
             if (!isDowned(player)) {
                 continue;
             }
@@ -74,7 +79,12 @@ public final class RaiseResurrectionAscend {
     }
 
     public static boolean isFinalDeath(ServerPlayer player) {
-        return FINAL_DEATH.contains(player.getUUID());
+        UUID playerId = player.getUUID();
+        return FINAL_DEATH.contains(playerId) || PENDING_FINAL_DEATH.contains(playerId);
+    }
+
+    public static boolean isPendingFinalDeath(ServerPlayer player) {
+        return PENDING_FINAL_DEATH.contains(player.getUUID());
     }
 
     public static void clearFinalDeath(ServerPlayer player) {
@@ -82,7 +92,9 @@ public final class RaiseResurrectionAscend {
     }
 
     public static boolean recoverIfFullyHealed(ServerPlayer player) {
-        if (!isDowned(player) || !DownedRecoveryPolicy.isFullyHealed(player.getHealth(), player.getMaxHealth())) {
+        if (isPendingFinalDeath(player)
+                || !isDowned(player)
+                || !DownedRecoveryPolicy.isFullyHealed(player.getHealth(), player.getMaxHealth())) {
             return false;
         }
         clearDownedState(player);
@@ -146,14 +158,20 @@ public final class RaiseResurrectionAscend {
             player.setAbsorptionAmount(0.0F);
         }
         FINAL_DEATH.remove(player.getUUID());
+        PENDING_FINAL_DEATH.remove(player.getUUID());
         clearForcedCrawling(player);
     }
 
     public static void finishDownedFromDamage(ServerPlayer player) {
-        dieNow(player);
+        if (isDowned(player) && !FINAL_DEATH.contains(player.getUUID())) {
+            PENDING_FINAL_DEATH.add(player.getUUID());
+        }
     }
 
     private static void dieNow(ServerPlayer player) {
+        if (!isDowned(player)) {
+            return;
+        }
         DamageSource downingSource = DOWNING_SOURCES.getOrDefault(
             player.getUUID(),
             player.damageSources().genericKill()
@@ -176,6 +194,7 @@ public final class RaiseResurrectionAscend {
     }
 
     private static void clearDownedState(ServerPlayer player) {
+        PENDING_FINAL_DEATH.remove(player.getUUID());
         if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
             player.setAbsorptionAmount(0.0F);
         }
