@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -13,6 +14,9 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -21,6 +25,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
     private static final float DOWNED_HEALTH = 1.0F;
+    private static final ResourceLocation DOWNED_ABSORPTION_CAPACITY =
+        ResourceLocation.fromNamespaceAndPath(MOD_ID, "downed_absorption_capacity");
     private static final Map<UUID, DamageSource> DOWNING_SOURCES = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> PENDING_FINAL_DEATH = ConcurrentHashMap.newKeySet();
@@ -35,6 +41,7 @@ public final class RaiseResurrectionAscend {
     public static void enterDowned(ServerPlayer player, DamageSource damageSource) {
         DOWNING_SOURCES.put(player.getUUID(), damageSource);
         player.setHealth(DOWNED_HEALTH);
+        ensureDownedAbsorptionCapacity(player);
         player.setAbsorptionAmount(DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount()));
         beginCrawling(player);
         syncState(player, true);
@@ -155,7 +162,7 @@ public final class RaiseResurrectionAscend {
 
     public static void clearPlayer(ServerPlayer player) {
         if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
-            player.setAbsorptionAmount(0.0F);
+            clearDownedAbsorption(player);
         }
         FINAL_DEATH.remove(player.getUUID());
         PENDING_FINAL_DEATH.remove(player.getUUID());
@@ -196,10 +203,29 @@ public final class RaiseResurrectionAscend {
     private static void clearDownedState(ServerPlayer player) {
         PENDING_FINAL_DEATH.remove(player.getUUID());
         if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
-            player.setAbsorptionAmount(0.0F);
+            clearDownedAbsorption(player);
         }
         clearForcedCrawling(player);
         syncState(player, false);
+    }
+
+    private static void ensureDownedAbsorptionCapacity(ServerPlayer player) {
+        AttributeInstance capacity = player.getAttribute(Attributes.MAX_ABSORPTION);
+        if (capacity != null && !capacity.hasModifier(DOWNED_ABSORPTION_CAPACITY)) {
+            capacity.addTransientModifier(new AttributeModifier(
+                DOWNED_ABSORPTION_CAPACITY,
+                DownedAbsorptionPolicy.INITIAL_ABSORPTION,
+                AttributeModifier.Operation.ADD_VALUE
+            ));
+        }
+    }
+
+    private static void clearDownedAbsorption(ServerPlayer player) {
+        player.setAbsorptionAmount(0.0F);
+        AttributeInstance capacity = player.getAttribute(Attributes.MAX_ABSORPTION);
+        if (capacity != null) {
+            capacity.removeModifier(DOWNED_ABSORPTION_CAPACITY);
+        }
     }
 
     private static void clearForcedCrawling(ServerPlayer player) {

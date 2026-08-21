@@ -14,11 +14,15 @@ class AbsorptionClockIntegrationContractTest {
         String lifecycle = readSource(
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java"
         );
+        assertTrue(lifecycle.contains("ensureDownedAbsorptionCapacity(player)"));
+        assertTrue(lifecycle.contains("player.getAttribute(Attributes.MAX_ABSORPTION)"));
+        assertTrue(lifecycle.contains("capacity.addTransientModifier(new AttributeModifier("));
         assertTrue(lifecycle.contains("DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount())"));
         assertTrue(lifecycle.contains("DownedAbsorptionPolicy.drain(player.getAbsorptionAmount())"));
         assertTrue(lifecycle.contains("player.setAbsorptionAmount(result.absorption())"));
         assertFalse(lifecycle.contains("DOWNED_UNTIL_TICK"));
         assertFalse(lifecycle.contains("downedDurationTicks"));
+        assertTrue(lifecycle.contains("capacity.removeModifier(DOWNED_ABSORPTION_CAPACITY)"));
 
         String packet = readSource(
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscendStatePacket.java"
