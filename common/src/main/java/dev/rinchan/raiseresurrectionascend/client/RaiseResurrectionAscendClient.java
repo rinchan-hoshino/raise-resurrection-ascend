@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendConfig;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpPacket;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
-import java.util.Locale;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -26,7 +25,6 @@ public final class RaiseResurrectionAscendClient {
         "key.categories.raise_resurrection_ascend"
     );
     private static int heldTicks;
-    private static int remainingTicks;
     private static boolean downed;
     private static boolean sentForCurrentHold;
     private static boolean appliedForcedPose;
@@ -42,7 +40,6 @@ public final class RaiseResurrectionAscendClient {
 
     public static void applyState(RaiseResurrectionAscendStatePacket packet) {
         downed = packet.downed();
-        remainingTicks = Math.max(0, packet.remainingTicks());
         heldTicks = 0;
         sentForCurrentHold = false;
         applyLocalPose();
@@ -56,7 +53,6 @@ public final class RaiseResurrectionAscendClient {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             downed = false;
-            remainingTicks = 0;
             heldTicks = 0;
             sentForCurrentHold = false;
             appliedForcedPose = false;
@@ -68,9 +64,6 @@ public final class RaiseResurrectionAscendClient {
             heldTicks = 0;
             sentForCurrentHold = false;
             return;
-        }
-        if (remainingTicks > 0) {
-            remainingTicks--;
         }
         if (!GIVE_UP_KEY.isDown()) {
             heldTicks = 0;
@@ -92,9 +85,7 @@ public final class RaiseResurrectionAscendClient {
 
         int centerX = event.getGuiGraphics().guiWidth() / 2;
         int baseY = event.getGuiGraphics().guiHeight() / 2 + 40;
-        int seconds = (remainingTicks + 19) / 20;
-        String remaining = String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
-        Component title = Component.translatable("hud.raise_resurrection_ascend.downed", remaining)
+        Component title = Component.translatable("hud.raise_resurrection_ascend.downed")
             .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
         Component recovery = Component.translatable("hud.raise_resurrection_ascend.recovery")
             .withStyle(ChatFormatting.WHITE);

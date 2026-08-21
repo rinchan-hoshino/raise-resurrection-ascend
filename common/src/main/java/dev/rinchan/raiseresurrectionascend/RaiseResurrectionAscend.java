@@ -21,7 +21,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
     private static final float DOWNED_HEALTH = 1.0F;
-    private static final Map<UUID, Integer> DOWNED_UNTIL_TICK = new ConcurrentHashMap<>();
     private static final Map<UUID, DamageSource> DOWNING_SOURCES = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
 
@@ -29,16 +28,15 @@ public final class RaiseResurrectionAscend {
     }
 
     public static boolean isDowned(ServerPlayer player) {
-        return DOWNED_UNTIL_TICK.containsKey(player.getUUID());
+        return DOWNING_SOURCES.containsKey(player.getUUID());
     }
 
     public static void enterDowned(ServerPlayer player, DamageSource damageSource) {
-        int durationTicks = RaiseResurrectionAscendConfig.downedDurationTicks.get();
-        DOWNED_UNTIL_TICK.put(player.getUUID(), player.server.getTickCount() + durationTicks);
         DOWNING_SOURCES.put(player.getUUID(), damageSource);
         player.setHealth(DOWNED_HEALTH);
+        player.setAbsorptionAmount(DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount()));
         beginCrawling(player);
-        syncState(player, true, durationTicks);
+        syncState(player, true);
         player.displayClientMessage(Component.translatable("message.raise_resurrection_ascend.downed_self"), false);
         for (ServerPlayer other : player.serverLevel().players()) {
             if (other != player) {
@@ -51,11 +49,8 @@ public final class RaiseResurrectionAscend {
     }
 
     public static void tick(MinecraftServer server) {
-        int now = server.getTickCount();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            UUID playerId = player.getUUID();
-            Integer until = DOWNED_UNTIL_TICK.get(playerId);
-            if (until == null) {
+            if (!isDowned(player)) {
                 continue;
             }
             if (!player.isAlive()) {
@@ -66,7 +61,9 @@ public final class RaiseResurrectionAscend {
                 continue;
             }
             player.setSprinting(false);
-            if (now >= until) {
+            DownedAbsorptionPolicy.DrainResult result = DownedAbsorptionPolicy.drain(player.getAbsorptionAmount());
+            player.setAbsorptionAmount(result.absorption());
+            if (result.expired()) {
                 dieNow(player);
             }
         }
@@ -145,8 +142,9 @@ public final class RaiseResurrectionAscend {
     }
 
     public static void clearPlayer(ServerPlayer player) {
-        DOWNED_UNTIL_TICK.remove(player.getUUID());
-        DOWNING_SOURCES.remove(player.getUUID());
+        if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
+            player.setAbsorptionAmount(0.0F);
+        }
         FINAL_DEATH.remove(player.getUUID());
         clearForcedCrawling(player);
     }
@@ -178,10 +176,11 @@ public final class RaiseResurrectionAscend {
     }
 
     private static void clearDownedState(ServerPlayer player) {
-        DOWNED_UNTIL_TICK.remove(player.getUUID());
-        DOWNING_SOURCES.remove(player.getUUID());
+        if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
+            player.setAbsorptionAmount(0.0F);
+        }
         clearForcedCrawling(player);
-        syncState(player, false, 0);
+        syncState(player, false);
     }
 
     private static void clearForcedCrawling(ServerPlayer player) {
@@ -190,7 +189,7 @@ public final class RaiseResurrectionAscend {
         }
     }
 
-    private static void syncState(ServerPlayer player, boolean downed, int remainingTicks) {
-        PacketDistributor.sendToPlayer(player, new RaiseResurrectionAscendStatePacket(downed, remainingTicks));
+    private static void syncState(ServerPlayer player, boolean downed) {
+        PacketDistributor.sendToPlayer(player, new RaiseResurrectionAscendStatePacket(downed));
     }
 }
