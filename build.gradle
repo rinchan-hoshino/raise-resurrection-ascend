@@ -22,4 +22,9 @@ subprojects {
             options.encoding = 'UTF-8'
         }
     }
+
+    tasks.withType(org.gradle.api.tasks.bundling.AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
 }

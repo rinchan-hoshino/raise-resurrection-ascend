@@ -75,7 +75,7 @@ public class RaiseResurrectionAscendNeoForge {
         }
         float damage = event.getNewDamage();
         if (RaiseResurrectionAscend.isDowned(player)) {
-            if (DownedDamagePolicy.finishesDownedState(player.getHealth(), damage)) {
+            if (DownedDamagePolicy.finishesDownedState(player.getHealth(), player.getAbsorptionAmount(), damage)) {
                 event.setNewDamage(0F);
                 RaiseResurrectionAscend.finishDownedFromDamage(player);
             }
