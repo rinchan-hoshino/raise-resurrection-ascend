@@ -2,6 +2,7 @@ package dev.rinchan.raiseresurrectionascend.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import java.nio.file.Files;
+import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendConfig;
 import java.nio.file.Path;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
@@ -61,6 +62,9 @@ public final class ScreenshotClientHarness {
         }
         if (!secondCaptured && inWorldTicks >= 260) {
             minecraft.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+            RaiseResurrectionAscendClient.setHeldTicksForScreenshot(
+                RaiseResurrectionAscendConfig.giveUpHoldTicks.get() / 2
+            );
             save(minecraft, "raise-resurrection-ascend-downed-front.png");
             secondCaptured = true;
         }

@@ -1,10 +1,7 @@
 {
   "key.categories.raise_resurrection_ascend": "Raise & Resurrection & Ascend",
   "key.raise_resurrection_ascend.give_up": "濒死时放弃挣扎",
-  "message.raise_resurrection_ascend.downed_self": "你已濒死！金色吸收生命耗尽就会死亡，等待其他玩家将生命治疗至满，或按屏幕提示放弃挣扎。",
-  "message.raise_resurrection_ascend.downed_other": "%s 已濒死：吸收生命耗尽就会死亡；可右键喂苹果恢复 1 颗心，并将生命治疗至满。",
-  "message.raise_resurrection_ascend.recovered": "你已脱离濒死状态。",
-  "hud.raise_resurrection_ascend.downed": "濒死",
-  "hud.raise_resurrection_ascend.recovery": "吸收生命耗尽即死亡；治疗至满可起身",
-  "hud.raise_resurrection_ascend.give_up": "放弃：按住 %s %s 秒"
+  "message.raise_resurrection_ascend.downed_other": "%s 倒地了。",
+  "hud.raise_resurrection_ascend.recovery": "恢复至满血可以解除濒死状态",
+  "hud.raise_resurrection_ascend.give_up": "长按 %s 放弃"
 }

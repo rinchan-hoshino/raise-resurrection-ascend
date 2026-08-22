@@ -1,10 +1,7 @@
 {
   "key.categories.raise_resurrection_ascend": "Raise & Resurrection & Ascend",
   "key.raise_resurrection_ascend.give_up": "Give up while downed",
-  "message.raise_resurrection_ascend.downed_self": "You are downed! You will die when the golden absorption hearts run out. Wait for another player to heal you to full health, or follow the on-screen prompt to give up.",
-  "message.raise_resurrection_ascend.downed_other": "%s is downed and will die when their absorption runs out. Right-click them with an Apple to restore one heart, then heal them to full health.",
-  "message.raise_resurrection_ascend.recovered": "You are no longer downed.",
-  "hud.raise_resurrection_ascend.downed": "DOWNED",
-  "hud.raise_resurrection_ascend.recovery": "Absorption empty = death; full health = recovery",
-  "hud.raise_resurrection_ascend.give_up": "Give up: hold %s for %s seconds"
+  "message.raise_resurrection_ascend.downed_other": "%s is downed.",
+  "hud.raise_resurrection_ascend.recovery": "Recover to full health to leave the downed state",
+  "hud.raise_resurrection_ascend.give_up": "Hold %s to give up"
 }

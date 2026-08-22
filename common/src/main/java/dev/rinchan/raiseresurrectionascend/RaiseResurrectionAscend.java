@@ -41,7 +41,6 @@ public final class RaiseResurrectionAscend {
         persistDownedState(player);
         beginCrawling(player);
         syncState(player, true);
-        player.displayClientMessage(Component.translatable("message.raise_resurrection_ascend.downed_self"), false);
         for (ServerPlayer other : player.serverLevel().players()) {
             if (other != player) {
                 other.displayClientMessage(
@@ -102,7 +101,6 @@ public final class RaiseResurrectionAscend {
             return false;
         }
         clearDownedState(player);
-        player.displayClientMessage(Component.translatable("message.raise_resurrection_ascend.recovered"), false);
         return true;
     }
 

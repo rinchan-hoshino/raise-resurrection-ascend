@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendConfig;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpPacket;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -24,6 +23,8 @@ public final class RaiseResurrectionAscendClient {
         GLFW.GLFW_KEY_G,
         "key.categories.raise_resurrection_ascend"
     );
+    private static final int PROGRESS_BAR_WIDTH = 128;
+    private static final int PROGRESS_BAR_HEIGHT = 4;
     private static int heldTicks;
     private static boolean downed;
     private static boolean sentForCurrentHold;
@@ -43,6 +44,10 @@ public final class RaiseResurrectionAscendClient {
         heldTicks = 0;
         sentForCurrentHold = false;
         applyLocalPose();
+    }
+
+    static void setHeldTicksForScreenshot(int ticks) {
+        heldTicks = ticks;
     }
 
     private static void registerKeys(RegisterKeyMappingsEvent event) {
@@ -84,25 +89,43 @@ public final class RaiseResurrectionAscendClient {
         }
 
         int centerX = event.getGuiGraphics().guiWidth() / 2;
-        int baseY = event.getGuiGraphics().guiHeight() / 2 + 40;
-        Component title = Component.translatable("hud.raise_resurrection_ascend.downed")
-            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-        Component recovery = Component.translatable("hud.raise_resurrection_ascend.recovery")
-            .withStyle(ChatFormatting.WHITE);
+        int baseY = event.getGuiGraphics().guiHeight() / 2 + 32;
+        Component recovery = Component.translatable("hud.raise_resurrection_ascend.recovery");
         Component giveUp = Component.translatable(
             "hud.raise_resurrection_ascend.give_up",
-            GIVE_UP_KEY.getTranslatedKeyMessage(),
-            Math.max(1, RaiseResurrectionAscendConfig.giveUpHoldTicks.get() / 20)
-        ).withStyle(ChatFormatting.GRAY);
+            GIVE_UP_KEY.getTranslatedKeyMessage()
+        );
 
         int width = Math.max(
-            minecraft.font.width(title),
+            PROGRESS_BAR_WIDTH,
             Math.max(minecraft.font.width(recovery), minecraft.font.width(giveUp))
         ) + 12;
-        event.getGuiGraphics().fill(centerX - width / 2, baseY - 5, centerX + width / 2, baseY + 31, 0xA0000000);
-        event.getGuiGraphics().drawCenteredString(minecraft.font, title, centerX, baseY, 0xFFFFFF);
-        event.getGuiGraphics().drawCenteredString(minecraft.font, recovery, centerX, baseY + 11, 0xFFFFFF);
-        event.getGuiGraphics().drawCenteredString(minecraft.font, giveUp, centerX, baseY + 22, 0xFFFFFF);
+        int barLeft = centerX - PROGRESS_BAR_WIDTH / 2;
+        int barTop = baseY + 24;
+        int progressWidth = Math.round(PROGRESS_BAR_WIDTH * GiveUpHoldProgress.ratio(
+            heldTicks,
+            RaiseResurrectionAscendConfig.giveUpHoldTicks.get()
+        ));
+
+        event.getGuiGraphics().fill(centerX - width / 2, baseY - 5, centerX + width / 2, barTop + 9, 0xA0000000);
+        event.getGuiGraphics().drawCenteredString(minecraft.font, recovery, centerX, baseY, 0xFFFFFF);
+        event.getGuiGraphics().drawCenteredString(minecraft.font, giveUp, centerX, baseY + 12, 0xB8B8B8);
+        event.getGuiGraphics().fill(
+            barLeft,
+            barTop,
+            barLeft + PROGRESS_BAR_WIDTH,
+            barTop + PROGRESS_BAR_HEIGHT,
+            0xFF4A4A4A
+        );
+        if (progressWidth > 0) {
+            event.getGuiGraphics().fill(
+                barLeft,
+                barTop,
+                barLeft + progressWidth,
+                barTop + PROGRESS_BAR_HEIGHT,
+                0xFFE14B4B
+            );
+        }
     }
 
     private static void applyLocalPose() {
