@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.rinchan.raiseresurrectionascend.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerFeederMixin",
+    "SpecialFoodHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

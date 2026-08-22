@@ -34,6 +34,10 @@ Default value:
 giveUpHoldTicks = 40
 ```
 
+## Compatibility
+
+When Let Your Friend Eating! 1.1.4 is installed, players can feed ordinary food, stew, and Eternal Food to another player even at full hunger. The feeding mod still owns item consumption, food effects, statistics, particles, and its configured cooldown.
+
 ## Requirements
 
 - Minecraft 1.21.1
