@@ -14,6 +14,10 @@ subprojects {
             forRepository { maven { url = 'https://api.modrinth.com/maven' } }
             filter { includeGroup 'maven.modrinth' }
         }
+        exclusiveContent {
+            forRepository { maven { url = 'https://www.cursemaven.com' } }
+            filter { includeGroup 'curse.maven' }
+        }
     }
 
     plugins.withType(JavaPlugin).configureEach {

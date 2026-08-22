@@ -36,7 +36,7 @@ giveUpHoldTicks = 40
 
 ## Compatibility
 
-When Let Your Friend Eating! 1.1.4 is installed, players can feed ordinary food, stew, and Eternal Food to another player even at full hunger. The feeding mod still owns item consumption, food effects, statistics, particles, and its configured cooldown.
+When Let Your Friend Eating! 1.1.4 is installed, players can feed ordinary food, stew, and Eternal Food to another player even at full hunger. Players can also give another player any drink-animation consumable during ordinary play; the original milk-bucket path remains authoritative. The feeding mod's configured cooldown and feed/eaten statistics remain shared across food and drink interactions.
 
 ## Requirements
 
