@@ -1,12 +1,10 @@
 package dev.rinchan.raiseresurrectionascend.mixin;
 
-import dev.rinchan.raiseresurrectionascend.AppleHealing;
 import dev.rinchan.raiseresurrectionascend.FriendDrinkFeeder;
 import dev.rinchan.raiseresurrectionascend.FriendFeedingPolicy;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,25 +27,6 @@ public abstract class PlayerFeederMixin {
         if (result != null) {
             callback.setReturnValue(result);
         }
-    }
-
-    @Inject(
-        method = "executeFeeding",
-        at = @At(
-            value = "INVOKE",
-            target = "Lth/in/tamkungz/letyourfriendeating/logic/PlayerFeeder;feedPlayer(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)V",
-            shift = At.Shift.AFTER
-        ),
-        remap = false
-    )
-    private static void raiseResurrectionAscend$applyAppleHealing(
-        Player feeder,
-        Player recipient,
-        ItemStack foodStack,
-        InteractionHand hand,
-        CallbackInfoReturnable<InteractionResult> callback
-    ) {
-        AppleHealing.apply(recipient, foodStack);
     }
 
     @ModifyConstant(method = "validateItemAndPlayer", constant = @Constant(intValue = 20), remap = false)

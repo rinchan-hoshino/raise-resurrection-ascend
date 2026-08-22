@@ -8,18 +8,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stats;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class RaiseResurrectionAscend {
@@ -119,43 +112,6 @@ public final class RaiseResurrectionAscend {
         }
         player.setHealth(player.getMaxHealth());
         return recoverIfFullyHealed(player);
-    }
-
-    public static boolean tryFeedRecoveryItem(ServerPlayer feeder, ServerPlayer target, InteractionHand hand) {
-        ItemStack itemStack = feeder.getItemInHand(hand);
-        var fedItem = itemStack.getItem();
-        RecoveryFeedingPolicy.ItemKind itemKind = itemStack.is(Items.APPLE)
-            ? RecoveryFeedingPolicy.ItemKind.APPLE
-            : RecoveryFeedingPolicy.ItemKind.UNSUPPORTED;
-        RecoveryFeedingPolicy.Result result = RecoveryFeedingPolicy.resolve(
-            isDowned(target),
-            itemKind,
-            itemStack.getCount(),
-            feeder.hasInfiniteMaterials()
-        );
-        if (!result.accepted()) {
-            return false;
-        }
-
-        AppleHealing.apply(target, itemStack);
-        if (!feeder.hasInfiniteMaterials()) {
-            itemStack.shrink(1);
-        }
-
-        feeder.awardStat(Stats.ITEM_USED.get(fedItem));
-        target.level().playSound(
-            null,
-            target.getX(),
-            target.getY(),
-            target.getZ(),
-            SoundEvents.GENERIC_EAT,
-            SoundSource.PLAYERS,
-            0.5F,
-            1.0F
-        );
-        target.gameEvent(GameEvent.EAT);
-        recoverIfFullyHealed(target);
-        return true;
     }
 
     public static void giveUp(ServerPlayer player) {
