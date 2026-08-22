@@ -1,5 +1,6 @@
 package dev.rinchan.raiseresurrectionascend.neoforge;
 
+import dev.rinchan.raiseresurrectionascend.AppleHealing;
 import dev.rinchan.raiseresurrectionascend.DownedDamagePolicy;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendConfig;
@@ -20,6 +21,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -32,6 +34,7 @@ public class RaiseResurrectionAscendNeoForge {
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, RaiseResurrectionAscendConfig.SPEC);
         modBus.addListener(this::registerPayloads);
         NeoForge.EVENT_BUS.addListener(this::onLivingDamagePre);
+        NeoForge.EVENT_BUS.addListener(this::onLivingUseItemFinish);
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
@@ -84,6 +87,12 @@ public class RaiseResurrectionAscendNeoForge {
         if (RaiseResurrectionAscend.shouldEnterDowned(player, damage)) {
             event.setNewDamage(0F);
             RaiseResurrectionAscend.enterDowned(player, event.getSource());
+        }
+    }
+
+    private void onLivingUseItemFinish(LivingEntityUseItemEvent.Finish event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            AppleHealing.apply(player, event.getItem());
         }
     }
 

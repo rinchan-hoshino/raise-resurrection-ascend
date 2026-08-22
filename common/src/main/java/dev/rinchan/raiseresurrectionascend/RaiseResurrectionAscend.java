@@ -137,7 +137,7 @@ public final class RaiseResurrectionAscend {
             return false;
         }
 
-        target.heal(result.healing());
+        AppleHealing.apply(target, itemStack);
         if (!feeder.hasInfiniteMaterials()) {
             itemStack.shrink(1);
         }

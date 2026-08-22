@@ -20,6 +20,7 @@ class FriendFeedingMixinContractTest {
         assertTrue(ordinary.contains("th.in.tamkungz.letyourfriendeating.logic.PlayerFeeder"));
         assertTrue(ordinary.contains("method = \"tryFeedPlayer\""));
         assertTrue(ordinary.contains("FriendDrinkFeeder.tryFeedDrink(feeder, recipient, hand)"));
+        assertTrue(ordinary.contains("AppleHealing.apply(recipient, foodStack)"));
         assertTrue(ordinary.contains("method = \"validateItemAndPlayer\""));
         assertTrue(ordinary.contains("FriendFeedingPolicy.exclusiveFoodLevelUpperBound()"));
 
