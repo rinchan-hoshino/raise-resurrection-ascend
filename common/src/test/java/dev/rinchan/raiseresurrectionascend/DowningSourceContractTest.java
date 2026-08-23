@@ -19,14 +19,13 @@ final class DowningSourceContractTest {
     }
 
     @Test
-    void damageFinishDefersDeathOutsideTheLivingDamageCallStack() throws IOException {
+    void timerAndGiveUpDeathsAreMarkedFinalBeforeReenteringTheDeathEvent() throws IOException {
         String source = Files.readString(findSource());
-        int finishStart = source.indexOf("public static void finishDownedFromDamage");
-        int dieStart = source.indexOf("private static void dieNow", finishStart);
-        String finishBody = source.substring(finishStart, dieStart);
+        int dieStart = source.indexOf("private static void dieNow");
+        int dieEnd = source.indexOf("private static void beginCrawling", dieStart);
+        String dieBody = source.substring(dieStart, dieEnd);
 
-        assertTrue(finishBody.contains("PENDING_FINAL_DEATH.add"));
-        assertTrue(!finishBody.contains("dieNow(player)"));
+        assertTrue(dieBody.indexOf("FINAL_DEATH.add") < dieBody.indexOf("player.die(downingSource)"));
         assertTrue(source.contains("if (PENDING_FINAL_DEATH.remove(player.getUUID()))"));
     }
 

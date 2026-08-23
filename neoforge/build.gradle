@@ -54,6 +54,9 @@ neoForge {
             server()
             programArgument '--nogui'
         }
+        gameTestServer {
+            type = 'gameTestServer'
+        }
         configureEach {
             logLevel = org.slf4j.event.Level.INFO
             systemProperty 'raiseResurrectionAscend.screenshot', System.getProperty('raiseResurrectionAscend.screenshot', 'false')

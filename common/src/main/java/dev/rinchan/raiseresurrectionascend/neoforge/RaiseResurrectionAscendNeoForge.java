@@ -18,6 +18,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
@@ -27,6 +28,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -49,7 +51,8 @@ public class RaiseResurrectionAscendNeoForge {
         ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, RaiseResurrectionAscendConfig.SPEC);
         modBus.addListener(this::registerPayloads);
         modBus.addListener(this::modifyDefaultComponents);
-        NeoForge.EVENT_BUS.addListener(this::onLivingDamagePre);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePre);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOW, this::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
@@ -112,17 +115,28 @@ public class RaiseResurrectionAscendNeoForge {
             return;
         }
         float damage = event.getNewDamage();
-        if (RaiseResurrectionAscend.isDowned(player)) {
-            if (DownedDamagePolicy.finishesDownedState(player.getAbsorptionAmount(), damage)) {
-                event.setNewDamage(0F);
-                RaiseResurrectionAscend.finishDownedFromDamage(player);
-            }
+        if (RaiseResurrectionAscend.isDowned(player)
+                && DownedDamagePolicy.finishesDownedState(player.getAbsorptionAmount(), damage)) {
+            event.setNewDamage(DownedDamagePolicy.damageForDeathProtection(
+                player.getAbsorptionAmount(),
+                player.getHealth(),
+                damage
+            ));
+            RaiseResurrectionAscend.awaitDamageResolution(player);
+        }
+    }
+
+    private void onLivingDeath(LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)
+                || RaiseResurrectionAscend.isFinalDeath(player)) {
             return;
         }
-        if (RaiseResurrectionAscend.shouldEnterDowned(player, damage)) {
-            event.setNewDamage(0F);
-            RaiseResurrectionAscend.enterDowned(player, event.getSource());
+        if (RaiseResurrectionAscend.isDowned(player)) {
+            RaiseResurrectionAscend.finishDownedDeath(player);
+            return;
         }
+        event.setCanceled(true);
+        RaiseResurrectionAscend.enterDowned(player, event.getSource());
     }
 
     private void onServerTick(ServerTickEvent.Post event) {

@@ -25,6 +25,7 @@ public final class RaiseResurrectionAscend {
     private static final Map<UUID, DamageSource> DOWNING_SOURCES = new ConcurrentHashMap<>();
     private static final Set<UUID> FINAL_DEATH = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> PENDING_FINAL_DEATH = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> AWAITING_DAMAGE_RESOLUTION = ConcurrentHashMap.newKeySet();
 
     private RaiseResurrectionAscend() {
     }
@@ -53,6 +54,9 @@ public final class RaiseResurrectionAscend {
 
     public static void tick(MinecraftServer server) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            if (resolveDamageProtection(player)) {
+                continue;
+            }
             if (PENDING_FINAL_DEATH.remove(player.getUUID())) {
                 dieNow(player);
                 continue;
@@ -75,10 +79,6 @@ public final class RaiseResurrectionAscend {
                 dieNow(player);
             }
         }
-    }
-
-    public static boolean shouldEnterDowned(ServerPlayer player, float damage) {
-        return !isFinalDeath(player) && !isDowned(player) && player.getHealth() - damage <= 0F;
     }
 
     public static boolean isFinalDeath(ServerPlayer player) {
@@ -125,6 +125,7 @@ public final class RaiseResurrectionAscend {
         DOWNING_SOURCES.remove(player.getUUID());
         FINAL_DEATH.remove(player.getUUID());
         PENDING_FINAL_DEATH.remove(player.getUUID());
+        AWAITING_DAMAGE_RESOLUTION.remove(player.getUUID());
         removeDownedAbsorptionCapacity(player);
         clearForcedCrawling(player);
     }
@@ -149,14 +150,31 @@ public final class RaiseResurrectionAscend {
         DOWNING_SOURCES.remove(player.getUUID());
         FINAL_DEATH.remove(player.getUUID());
         PENDING_FINAL_DEATH.remove(player.getUUID());
+        AWAITING_DAMAGE_RESOLUTION.remove(player.getUUID());
         clearDownedAbsorption(player);
         clearForcedCrawling(player);
         clearPersistedDownedState(player);
     }
 
-    public static void finishDownedFromDamage(ServerPlayer player) {
-        if (isDowned(player) && !FINAL_DEATH.contains(player.getUUID())) {
-            PENDING_FINAL_DEATH.add(player.getUUID());
+    public static void awaitDamageResolution(ServerPlayer player) {
+        if (isDowned(player) && !isFinalDeath(player)) {
+            AWAITING_DAMAGE_RESOLUTION.add(player.getUUID());
+        }
+    }
+
+    public static boolean resolveDamageProtection(ServerPlayer player) {
+        if (!AWAITING_DAMAGE_RESOLUTION.remove(player.getUUID())
+                || !isDowned(player)
+                || !player.isAlive()) {
+            return false;
+        }
+        clearDownedState(player, true);
+        return true;
+    }
+
+    public static void finishDownedDeath(ServerPlayer player) {
+        if (isDowned(player)) {
+            clearDownedState(player);
         }
     }
 
@@ -186,9 +204,18 @@ public final class RaiseResurrectionAscend {
     }
 
     private static void clearDownedState(ServerPlayer player) {
+        clearDownedState(player, false);
+    }
+
+    private static void clearDownedState(ServerPlayer player, boolean preserveAbsorption) {
         PENDING_FINAL_DEATH.remove(player.getUUID());
+        AWAITING_DAMAGE_RESOLUTION.remove(player.getUUID());
         if (DOWNING_SOURCES.remove(player.getUUID()) != null) {
-            clearDownedAbsorption(player);
+            if (preserveAbsorption) {
+                removeDownedAbsorptionCapacity(player);
+            } else {
+                clearDownedAbsorption(player);
+            }
         }
         clearForcedCrawling(player);
         clearPersistedDownedState(player);
