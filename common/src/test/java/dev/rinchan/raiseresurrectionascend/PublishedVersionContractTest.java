@@ -16,7 +16,7 @@ class PublishedVersionContractTest {
             properties.load(reader);
         }
         String version = properties.getProperty("mod_version");
-        assertEquals("0.6.3", version);
+        assertEquals("0.6.4", version);
         assertFalse(version.contains("private"));
     }
 

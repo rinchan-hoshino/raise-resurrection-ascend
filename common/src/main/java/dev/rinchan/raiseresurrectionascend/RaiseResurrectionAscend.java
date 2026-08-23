@@ -9,6 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -18,6 +20,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
     private static final float DOWNED_HEALTH = 1.0F;
+    private static final int DOWNED_INVISIBILITY_TICKS = 20 * 3;
     private static final ResourceLocation DOWNED_ABSORPTION_CAPACITY =
         ResourceLocation.fromNamespaceAndPath(MOD_ID, "downed_absorption_capacity");
     private static final String DOWNED_PERSISTED_TAG = MOD_ID + ":downed";
@@ -38,7 +41,13 @@ public final class RaiseResurrectionAscend {
         DOWNING_SOURCES.put(player.getUUID(), damageSource);
         player.setHealth(DOWNED_HEALTH);
         ensureDownedAbsorptionCapacity(player);
-        player.setAbsorptionAmount(DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount()));
+        player.setAbsorptionAmount(DownedAbsorptionPolicy.initialAbsorption(
+            player.getAbsorptionAmount(),
+            player.getMaxHealth()
+        ));
+        player.addEffect(new MobEffectInstance(
+            MobEffects.INVISIBILITY, DOWNED_INVISIBILITY_TICKS, 0, false, true, true
+        ));
         persistDownedState(player);
         beginCrawling(player);
         syncState(player, true);
@@ -68,11 +77,14 @@ public final class RaiseResurrectionAscend {
                 clearDownedState(player);
                 continue;
             }
-            if (recoverIfFullyHealed(player)) {
+            if (recoverIfThresholdReached(player)) {
                 continue;
             }
             player.setSprinting(false);
-            DownedAbsorptionPolicy.DrainResult result = DownedAbsorptionPolicy.drain(player.getAbsorptionAmount());
+            DownedAbsorptionPolicy.DrainResult result = DownedAbsorptionPolicy.drain(
+                player.getAbsorptionAmount(),
+                player.getMaxHealth()
+            );
             player.setAbsorptionAmount(result.absorption());
             persistDownedState(player);
             if (result.expired()) {
@@ -94,10 +106,10 @@ public final class RaiseResurrectionAscend {
         FINAL_DEATH.remove(player.getUUID());
     }
 
-    public static boolean recoverIfFullyHealed(ServerPlayer player) {
+    public static boolean recoverIfThresholdReached(ServerPlayer player) {
         if (isPendingFinalDeath(player)
                 || !isDowned(player)
-                || !DownedRecoveryPolicy.isFullyHealed(player.getHealth(), player.getMaxHealth())) {
+                || !DownedRecoveryPolicy.canRecover(player.getHealth(), player.getMaxHealth())) {
             return false;
         }
         clearDownedState(player);
@@ -109,7 +121,7 @@ public final class RaiseResurrectionAscend {
             return false;
         }
         player.setHealth(player.getMaxHealth());
-        return recoverIfFullyHealed(player);
+        return recoverIfThresholdReached(player);
     }
 
     public static void giveUp(ServerPlayer player) {
@@ -227,7 +239,7 @@ public final class RaiseResurrectionAscend {
         if (capacity != null && !capacity.hasModifier(DOWNED_ABSORPTION_CAPACITY)) {
             capacity.addTransientModifier(new AttributeModifier(
                 DOWNED_ABSORPTION_CAPACITY,
-                DownedAbsorptionPolicy.INITIAL_ABSORPTION,
+                DownedAbsorptionPolicy.generatedAbsorption(player.getMaxHealth()),
                 AttributeModifier.Operation.ADD_VALUE
             ));
         }

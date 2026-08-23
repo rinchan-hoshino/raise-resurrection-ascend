@@ -15,6 +15,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -51,6 +53,34 @@ public final class TotemPriorityGameTests {
         helper.assertTrue(player.isAlive(), "The downed transition must cancel the initial death");
         helper.assertTrue(RaiseResurrectionAscend.isDowned(player),
             "Lethal damage without death protection must enter the downed state");
+        cleanup(player);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void downedProtectionAndRecoveryScaleWithMaximumHealth(GameTestHelper helper) {
+        ServerPlayer player = freshPlayer(helper, "scaled_downed");
+        player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
+        player.setHealth(40.0F);
+
+        RaiseResurrectionAscend.enterDowned(player, player.damageSources().generic());
+
+        helper.assertTrue(player.hasEffect(MobEffects.INVISIBILITY),
+            "Entering the downed state must grant temporary Invisibility");
+        helper.assertTrue(player.getEffect(MobEffects.INVISIBILITY).getDuration() == 60,
+            "The downed Invisibility effect must last exactly three seconds");
+        helper.assertTrue(player.getAbsorptionAmount() == 40.0F,
+            "The generated temporary shield must equal maximum health");
+
+        player.setHealth(19.99F);
+        helper.assertTrue(!RaiseResurrectionAscend.recoverIfThresholdReached(player),
+            "A player with more than 20 maximum health must remain downed below 20 health");
+
+        player.setHealth(20.0F);
+        helper.assertTrue(RaiseResurrectionAscend.recoverIfThresholdReached(player),
+            "A player with more than 20 maximum health must recover at 20 health");
+        helper.assertTrue(!RaiseResurrectionAscend.isDowned(player),
+            "Successful threshold recovery must clear the downed state");
         cleanup(player);
         helper.succeed();
     }

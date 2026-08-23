@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.4
+
+- Grant 3 seconds of Invisibility on entering the downed state.
+- Generate temporary absorption equal to maximum health while preserving the one-minute absorption clock.
+- Recover at the lower of maximum health or 20 health.
+- Keep all existing in-game recovery and downed-state wording unchanged.
+
 ## 0.6.3
 
 ### Added

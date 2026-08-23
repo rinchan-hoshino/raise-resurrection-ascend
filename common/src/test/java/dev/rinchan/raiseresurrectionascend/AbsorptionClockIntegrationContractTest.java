@@ -17,8 +17,10 @@ class AbsorptionClockIntegrationContractTest {
         assertTrue(lifecycle.contains("ensureDownedAbsorptionCapacity(player)"));
         assertTrue(lifecycle.contains("player.getAttribute(Attributes.MAX_ABSORPTION)"));
         assertTrue(lifecycle.contains("capacity.addTransientModifier(new AttributeModifier("));
-        assertTrue(lifecycle.contains("DownedAbsorptionPolicy.initialAbsorption(player.getAbsorptionAmount())"));
-        assertTrue(lifecycle.contains("DownedAbsorptionPolicy.drain(player.getAbsorptionAmount())"));
+        assertTrue(lifecycle.contains("DownedAbsorptionPolicy.initialAbsorption("));
+        assertTrue(lifecycle.contains("DownedAbsorptionPolicy.drain("));
+        assertTrue(lifecycle.contains("MobEffects.INVISIBILITY, DOWNED_INVISIBILITY_TICKS"));
+        assertTrue(lifecycle.contains("DOWNED_INVISIBILITY_TICKS = 20 * 3"));
         assertTrue(lifecycle.contains("player.setAbsorptionAmount(result.absorption())"));
         assertTrue(lifecycle.contains("persistDownedState(player)"));
         assertTrue(lifecycle.contains("public static void suspendPlayer"));
@@ -27,6 +29,9 @@ class AbsorptionClockIntegrationContractTest {
         assertFalse(lifecycle.contains("DOWNED_UNTIL_TICK"));
         assertFalse(lifecycle.contains("downedDurationTicks"));
         assertTrue(lifecycle.contains("capacity.removeModifier(DOWNED_ABSORPTION_CAPACITY)"));
+        assertTrue(lifecycle.contains(
+            "DownedAbsorptionPolicy.generatedAbsorption(player.getMaxHealth())"
+        ));
 
         String packet = readSource(
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscendStatePacket.java"
