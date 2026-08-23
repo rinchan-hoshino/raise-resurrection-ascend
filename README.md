@@ -15,7 +15,7 @@ Raise & Resurrection & Ascend keeps a player from dying immediately when lethal 
 - Downed players continue to take normal damage. A lethal follow-up, absorption depletion, or give-up keeps the DamageSource that originally downed them for death messages and death-event consumers.
 - Another player can right-click a downed player with an ordinary Apple to restore exactly 2 health (one heart). Survival consumes one Apple; Creative consumes nothing. Potions and golden apples are not special feeding inputs.
 - The downed player sees a persistent HUD with the recovery rule and bound give-up key; the vanilla absorption hearts are the visible remaining-time bar.
-- The mod does not use, consume or imitate a totem of undying.
+- The mod does not imitate or consume Totems of Undying. Vanilla death-protection effects run first; downing is only the fallback when they do not save the player.
 - Holding G for 2 seconds gives up and triggers final death.
 - `/raise_resurrection_ascend revive <targets>` is an administrator override that fills the targets' health and ends their downed state.
 
