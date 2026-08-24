@@ -1,22 +1,20 @@
 package dev.rinchan.raiseresurrectionascend;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-class AppleHealingContractTest {
+class NoAppleHealingContractTest {
     @Test
-    void healingBelongsToTheAppleFoodComponent() throws Exception {
+    void ordinaryApplesHaveNoRaiseResurrectionAscendHealingOverride() throws Exception {
         String neoForge = readSource("common/src/main/java/dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String feeder = readSource("common/src/main/java/dev/rinchan/raiseresurrectionascend/mixin/PlayerFeederMixin.java");
         String recovery = readSource("common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java");
-        assertTrue(neoForge.contains("event.modify(Items.APPLE"));
-        assertTrue(neoForge.contains("new FoodProperties.PossibleEffect"));
-        assertTrue(neoForge.contains("new MobEffectInstance(ONE_HEART_FOOD_EFFECT"));
-        assertFalse(neoForge.contains("LivingEntityUseItemEvent.Finish"));
+        assertFalse(neoForge.contains("Items.APPLE"));
+        assertFalse(neoForge.contains("ModifyDefaultComponentsEvent"));
+        assertFalse(neoForge.contains("one_heart_food"));
         assertFalse(feeder.contains("AppleHealing"));
         assertFalse(recovery.contains("tryFeedRecoveryItem"));
     }

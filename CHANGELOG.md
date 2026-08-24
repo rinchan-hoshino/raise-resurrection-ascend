@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.5
+
+- Remove the ordinary apple's one-heart food effect and its private mob-effect registration.
+- Leave all food consumption and healing rules to the consuming pack or other food mods.
+
 ## 0.6.4
 
 - Grant 3 seconds of Invisibility on entering the downed state.

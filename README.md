@@ -13,7 +13,7 @@ Raise & Resurrection & Ascend keeps a player from dying immediately when lethal 
 - Reaching zero absorption causes final death. Reaching the lower of maximum health or 20 health first ends the downed state and clears the remaining clock.
 - Healing, regeneration and instant-health effects continue to affect downed players.
 - Downed players continue to take normal damage. A lethal follow-up, absorption depletion, or give-up keeps the DamageSource that originally downed them for death messages and death-event consumers.
-- Another player can right-click a downed player with an ordinary Apple to restore exactly 2 health (one heart). Survival consumes one Apple; Creative consumes nothing. Potions and golden apples are not special feeding inputs.
+- Food items and food-derived healing are not modified by this mod; consuming packs and food mods own those rules.
 - The downed player sees a persistent HUD with the recovery rule and bound give-up key; the vanilla absorption hearts are the visible remaining-time bar.
 - The mod does not imitate or consume Totems of Undying. Vanilla death-protection effects run first; downing is only the fallback when they do not save the player.
 - Holding G for 2 seconds gives up and triggers final death.
