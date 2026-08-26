@@ -51,14 +51,10 @@ public final class RaiseResurrectionAscend {
         persistDownedState(player);
         beginCrawling(player);
         syncState(player, true);
-        for (ServerPlayer other : player.serverLevel().players()) {
-            if (other != player) {
-                other.displayClientMessage(
-                    Component.translatable("message.raise_resurrection_ascend.downed_other", player.getDisplayName()),
-                    false
-                );
-            }
-        }
+        player.server.getPlayerList().broadcastSystemMessage(
+            Component.translatable("message.raise_resurrection_ascend.downed_other", player.getDisplayName()),
+            false
+        );
     }
 
     public static void tick(MinecraftServer server) {

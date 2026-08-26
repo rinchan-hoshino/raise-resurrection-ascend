@@ -10,11 +10,13 @@ import org.junit.jupiter.api.Test;
 
 final class DownedPresentationContractTest {
     @Test
-    void downedPlayerUsesTheHudInsteadOfReceivingSelfChat() throws IOException {
+    void downedEntryBroadcastsOneServerWideChatIncludingTheDownedPlayer() throws IOException {
         String lifecycle = Files.readString(source("RaiseResurrectionAscend.java"));
-        assertFalse(lifecycle.contains("message.raise_resurrection_ascend.downed_self"));
-        assertFalse(lifecycle.contains("message.raise_resurrection_ascend.recovered"));
+        assertTrue(lifecycle.contains("broadcastSystemMessage"));
         assertTrue(lifecycle.contains("message.raise_resurrection_ascend.downed_other"));
+        assertFalse(lifecycle.contains("other.displayClientMessage"));
+        assertFalse(lifecycle.contains("other != player"));
+        assertFalse(lifecycle.contains("player.serverLevel().players()"));
     }
 
     @Test

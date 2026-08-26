@@ -15,6 +15,7 @@ Raise & Resurrection & Ascend keeps a player from dying immediately when lethal 
 - Downed players continue to take normal damage. A lethal follow-up, absorption depletion, or give-up keeps the DamageSource that originally downed them for death messages and death-event consumers.
 - Food items and food-derived healing are not modified by this mod; consuming packs and food mods own those rules.
 - The downed player sees a persistent HUD with the recovery rule and bound give-up key; the vanilla absorption hearts are the visible remaining-time bar.
+- Entering the downed state sends one server-wide chat message to every online player, including the downed player; final death keeps Minecraft's separate death message.
 - The mod does not imitate or consume Totems of Undying. Vanilla death-protection effects run first; downing is only the fallback when they do not save the player.
 - Holding G for 2 seconds gives up and triggers final death.
 - `/raise_resurrection_ascend revive <targets>` is an administrator override that fills the targets' health and ends their downed state.
