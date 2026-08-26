@@ -51,9 +51,9 @@ public final class RaiseResurrectionAscend {
         persistDownedState(player);
         beginCrawling(player);
         syncState(player, true);
-        player.server.getPlayerList().broadcastSystemMessage(
-            Component.translatable("message.raise_resurrection_ascend.downed_other", player.getDisplayName()),
-            false
+        DeathMessageDelivery.broadcast(
+            player,
+            Component.translatable("message.raise_resurrection_ascend.downed_other", player.getDisplayName())
         );
     }
 

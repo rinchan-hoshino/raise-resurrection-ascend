@@ -10,13 +10,23 @@ import org.junit.jupiter.api.Test;
 
 final class DownedPresentationContractTest {
     @Test
-    void downedEntryBroadcastsOneServerWideChatIncludingTheDownedPlayer() throws IOException {
+    void downedEntryUsesVanillaDeathMessageDeliverySemantics() throws IOException {
         String lifecycle = Files.readString(source("RaiseResurrectionAscend.java"));
-        assertTrue(lifecycle.contains("broadcastSystemMessage"));
+        assertTrue(lifecycle.contains("DeathMessageDelivery.broadcast("));
+        assertTrue(lifecycle.contains("            player,"));
         assertTrue(lifecycle.contains("message.raise_resurrection_ascend.downed_other"));
-        assertFalse(lifecycle.contains("other.displayClientMessage"));
-        assertFalse(lifecycle.contains("other != player"));
-        assertFalse(lifecycle.contains("player.serverLevel().players()"));
+        assertFalse(lifecycle.contains("displayClientMessage"));
+        assertFalse(lifecycle.contains("broadcastSystemMessage"));
+
+        String delivery = Files.readString(source("DeathMessageDelivery.java"));
+        assertTrue(delivery.contains("GameRules.RULE_SHOWDEATHMESSAGES"));
+        assertTrue(delivery.contains("getDeathMessageVisibility"));
+        assertTrue(delivery.contains("Team.Visibility.ALWAYS"));
+        assertTrue(delivery.contains("Team.Visibility.HIDE_FOR_OTHER_TEAMS"));
+        assertTrue(delivery.contains("Team.Visibility.HIDE_FOR_OWN_TEAM"));
+        assertTrue(delivery.contains("broadcastSystemMessage"));
+        assertTrue(delivery.contains("broadcastSystemToTeam"));
+        assertTrue(delivery.contains("broadcastSystemToAllExceptTeam"));
     }
 
     @Test
