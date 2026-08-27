@@ -2,6 +2,7 @@
 
 ## 1.0.0
 
+- Publishes Fabric and NeoForge builds for Minecraft 1.21.1, 26.1.2, and 26.2.
 - Redesigned the mod around a server-authoritative, damage-vulnerable downed state while retaining the absorption clock and crawl presentation.
 - Healing now revives at the dynamic `min(max health, 20)` threshold shown by the HUD.
 - Preserved native Totem of Undying protection on both the initial lethal transition and the original-cause final death attempt.
