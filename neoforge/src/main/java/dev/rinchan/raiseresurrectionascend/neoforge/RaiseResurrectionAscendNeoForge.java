@@ -39,7 +39,7 @@ public class RaiseResurrectionAscendNeoForge {
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePre);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePost);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingUseTotem);
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOW, this::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
