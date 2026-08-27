@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.3
+
+- Runs NeoForge's downed-state `LivingDeathEvent` cancellation at `LOW`, before final-death observers at `LOWEST`; a canceled downing event can no longer create dog tags, increment kill counters, or trigger other final-death cleanup.
+- Leaves downed damage pre/post processing and native totem observation at `LOWEST`.
+
+## 1.0.2
+
+- Uses a finite `1,000,000F` native damage amount for final-death dispatch while preserving the reconstructed original source and the existing totem/death pipeline.
+
 ## 1.0.1
 
 - Restored the hold-G give-up path as a server-authoritative 40-tick input state: clients report only key transitions, while the server owns completion.
