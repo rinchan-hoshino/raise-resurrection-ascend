@@ -14,7 +14,7 @@ final class PublishedVersionContractTest {
         try (var reader = Files.newBufferedReader(root().resolve("gradle.properties"))) {
             properties.load(reader);
         }
-        assertEquals("1.0.1", properties.getProperty("mod_version"));
+        assertEquals("1.0.2", properties.getProperty("mod_version"));
     }
 
     private static Path root() {
