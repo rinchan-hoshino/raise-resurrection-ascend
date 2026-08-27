@@ -1,4 +1,7 @@
 {
   "message.raise_resurrection_ascend.downed_other": "%s 倒下了！",
-  "hud.raise_resurrection_ascend.recovery": "生命值恢复至 %s 即可起身"
+  "hud.raise_resurrection_ascend.recovery": "生命值恢复至 %s 即可起身",
+  "hud.raise_resurrection_ascend.give_up": "长按 %s %s 秒放弃挣扎",
+  "key.raise_resurrection_ascend.give_up": "放弃挣扎",
+  "key.category.raise_resurrection_ascend.general": "濒死、复苏与飞升"
 }

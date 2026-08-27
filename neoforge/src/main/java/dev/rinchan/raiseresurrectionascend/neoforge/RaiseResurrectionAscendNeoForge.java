@@ -2,6 +2,7 @@ package dev.rinchan.raiseresurrectionascend.neoforge;
 
 import com.mojang.logging.LogUtils;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
+import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpInputPacket;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
 import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
 import dev.rinchan.raiseresurrectionascend.client.neoforge.RaiseResurrectionAscendNeoForgeClient;
@@ -44,12 +45,12 @@ public class RaiseResurrectionAscendNeoForge {
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
-            RaiseResurrectionAscendNeoForgeClient.register();
+            RaiseResurrectionAscendNeoForgeClient.register(modBus);
         }
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1.0.0");
+        PayloadRegistrar registrar = event.registrar("1.0.1");
         registrar.playToClient(
             RaiseResurrectionAscendStatePacket.TYPE,
             RaiseResurrectionAscendStatePacket.CODEC,
@@ -59,6 +60,19 @@ public class RaiseResurrectionAscendNeoForge {
                         LOGGER.error("Failed to apply downed-state payload", throwable);
                     }
                 })
+        );
+        registrar.playToServer(
+            RaiseResurrectionAscendGiveUpInputPacket.TYPE,
+            RaiseResurrectionAscendGiveUpInputPacket.CODEC,
+            (packet, context) -> context.enqueueWork(() -> {
+                if (context.player() instanceof ServerPlayer player) {
+                    RaiseResurrectionAscend.handleGiveUpInput(player, packet.pressed());
+                }
+            }).whenComplete((ignored, throwable) -> {
+                if (throwable != null) {
+                    LOGGER.error("Failed to handle give-up input payload", throwable);
+                }
+            })
         );
     }
 

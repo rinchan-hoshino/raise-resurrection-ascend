@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 final class DownedPresentationContractTest {
     @Test
-    void crawlIsMaintainedOnBothSidesAndHudShowsOnlyDynamicRecoveryThreshold() throws Exception {
+    void crawlAndServerOwnedGiveUpPresentationAreMaintainedOnBothSides() throws Exception {
         Path root = root();
         String lifecycle = Files.readString(root.resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java"));
         String client = Files.readString(root.resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend/client/RaiseResurrectionAscendClient.java"));
@@ -20,8 +20,11 @@ final class DownedPresentationContractTest {
         assertFalse(client.contains("setForcedPose"));
         assertTrue(client.contains("packet.recoveryThreshold()"));
         assertTrue(client.contains("formatHealth(recoveryThreshold)"));
-        assertFalse(client.contains("give_up"));
-        assertFalse(english.contains("give up"));
+        assertTrue(client.contains("GiveUpHoldState.REQUIRED_TICKS"));
+        assertTrue(client.contains("hud.raise_resurrection_ascend.give_up"));
+        assertTrue(client.contains("GuiGraphicsExtractor"));
+        assertTrue(client.contains("graphics.centeredText"));
+        assertTrue(english.contains("Hold %s for %s seconds to give up"));
     }
 
     private static Path root() {

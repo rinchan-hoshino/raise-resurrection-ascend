@@ -31,21 +31,33 @@ final class RraOneZeroContractTest {
     }
 
     @Test
-    void networkIsRequiredVersionedS2cOnlyAndHudUsesServerThreshold() throws Exception {
+    void networkIsRequiredAndGiveUpCompletionIsServerOwned() throws Exception {
+        String lifecycle = source("RaiseResurrectionAscend.java");
         String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String neoForgeClient = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/client/neoforge/RaiseResurrectionAscendNeoForgeClient.java");
-        String packet = source("RaiseResurrectionAscendStatePacket.java");
+        String statePacket = source("RaiseResurrectionAscendStatePacket.java");
+        String inputPacket = source("RaiseResurrectionAscendGiveUpInputPacket.java");
         String client = source("client/RaiseResurrectionAscendClient.java");
 
-        assertTrue(adapter.contains("event.registrar(\"1.0.0\")"));
+        assertTrue(adapter.contains("event.registrar(\"1.0.1\")"));
         assertFalse(adapter.contains(".optional()"));
-        assertFalse(adapter.contains("playToServer"));
+        assertTrue(adapter.contains("playToServer"));
         assertFalse(adapter.contains("exceptionally("));
         assertTrue(adapter.contains("LOGGER.error"));
-        assertTrue(packet.contains("float recoveryThreshold"));
+        assertTrue(statePacket.contains("float recoveryThreshold"));
+        assertTrue(inputPacket.contains("boolean pressed"));
+        assertTrue(inputPacket.contains("net.minecraft.resources.Identifier"));
+        assertFalse(inputPacket.contains("heldTicks"));
+        assertFalse(inputPacket.contains("boolean complete"));
+        assertTrue(lifecycle.contains("state.giveUp.tickAndIsComplete()"));
+        assertTrue(lifecycle.contains("state.finalDeath.requestFinalDeath()"));
         assertTrue(client.contains("packet.recoveryThreshold()"));
+        assertTrue(client.contains("GIVE_UP_KEY.isDown()"));
+        assertTrue(client.contains("KeyMapping.Category.register"));
+        assertTrue(client.contains("Identifier.fromNamespaceAndPath"));
+        assertTrue(neoForgeClient.contains("ClientPacketDistributor::sendToServer"));
+        assertTrue(neoForgeClient.contains("event.registerCategory"));
         assertTrue(neoForgeClient.contains("ClientPlayerNetworkEvent.LoggingOut"));
-        assertFalse(client.contains("give_up"));
     }
 
     @Test

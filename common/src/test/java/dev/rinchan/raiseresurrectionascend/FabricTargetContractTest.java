@@ -23,6 +23,9 @@ final class FabricTargetContractTest {
         String server = fabricSource("fabric/RaiseResurrectionAscendFabric.java");
         String client = fabricSource("client/fabric/RaiseResurrectionAscendFabricClient.java");
         assertTrue(server.contains("PayloadTypeRegistry.clientboundPlay()"));
+        assertTrue(server.contains("PayloadTypeRegistry.serverboundPlay()"));
+        assertTrue(server.contains("RaiseResurrectionAscendGiveUpInputPacket.TYPE"));
+        assertTrue(server.contains("ServerPlayNetworking.registerGlobalReceiver"));
         assertTrue(server.contains("ServerPlayNetworking::send"));
         assertTrue(server.contains("ServerLivingEntityEvents.ALLOW_DEATH"));
         assertTrue(server.contains("ServerTickEvents.END_SERVER_TICK"));
@@ -30,6 +33,8 @@ final class FabricTargetContractTest {
         assertTrue(server.contains("ServerPlayConnectionEvents.DISCONNECT"));
         assertTrue(server.contains("UseEntityCallback.EVENT"));
         assertTrue(client.contains("ClientPlayNetworking.registerGlobalReceiver"));
+        assertTrue(client.contains("ClientPlayNetworking::send"));
+        assertTrue(client.contains("KeyMappingHelper.registerKeyMapping"));
         assertTrue(client.contains("ClientTickEvents.END_CLIENT_TICK"));
         assertTrue(client.contains("HudElementRegistry.addLast"));
         assertTrue(client.contains("ClientPlayConnectionEvents.INIT"));

@@ -1,20 +1,30 @@
 package dev.rinchan.raiseresurrectionascend.client.neoforge;
 
 import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.common.NeoForge;
 
 public final class RaiseResurrectionAscendNeoForgeClient {
     private RaiseResurrectionAscendNeoForgeClient() {
     }
 
-    public static void register() {
+    public static void register(IEventBus modBus) {
+        RaiseResurrectionAscendClient.initialize(ClientPacketDistributor::sendToServer);
+        modBus.addListener(RaiseResurrectionAscendNeoForgeClient::registerKeyMappings);
         NeoForge.EVENT_BUS.addListener(RaiseResurrectionAscendNeoForgeClient::onClientTick);
         NeoForge.EVENT_BUS.addListener(RaiseResurrectionAscendNeoForgeClient::onRenderGui);
         NeoForge.EVENT_BUS.addListener(RaiseResurrectionAscendNeoForgeClient::onLoggingIn);
         NeoForge.EVENT_BUS.addListener(RaiseResurrectionAscendNeoForgeClient::onLoggingOut);
+    }
+
+    private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        event.registerCategory(RaiseResurrectionAscendClient.giveUpCategory());
+        event.register(RaiseResurrectionAscendClient.giveUpKey());
     }
 
     private static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
