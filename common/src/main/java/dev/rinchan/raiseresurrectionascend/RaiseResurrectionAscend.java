@@ -4,9 +4,8 @@ import com.mojang.logging.LogUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.minecraft.core.Holder;
+import java.util.function.BooleanSupplier;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -19,17 +18,13 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
 
 public final class RaiseResurrectionAscend {
     public static final String MOD_ID = "raise_resurrection_ascend";
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final String PERSISTED_STATE = MOD_ID + ":downed_state";
     private static final String PERSISTED_CAUSE = "cause";
     private static final String PERSISTED_ABSORPTION = "remaining_absorption";
-    private static final String LEGACY_DOWNED = MOD_ID + ":downed";
-    private static final String LEGACY_ABSORPTION = MOD_ID + ":remaining_absorption";
     private static final float DOWNED_HEALTH = 1.0F;
     private static final float ABSORPTION_TOLERANCE = 0.001F;
     private static final int DOWNED_INVISIBILITY_TICKS = 20 * 3;
@@ -38,8 +33,19 @@ public final class RaiseResurrectionAscend {
         "downed_absorption_capacity"
     );
     private static final Map<UUID, DownedState> DOWNED_PLAYERS = new HashMap<>();
+    private static final Map<UUID, Integer> SYNTHETIC_TOTEM_RESCUES = new HashMap<>();
+    private static DownedStatePersistence persistence;
+    private static DownedStateSynchronizer synchronizer;
 
     private RaiseResurrectionAscend() {
+    }
+
+    public static void initialize(DownedStatePersistence statePersistence, DownedStateSynchronizer stateSynchronizer) {
+        if (persistence != null || synchronizer != null) {
+            throw new IllegalStateException("RRA platform services were initialized twice");
+        }
+        persistence = statePersistence;
+        synchronizer = stateSynchronizer;
     }
 
     public static boolean isDowned(ServerPlayer player) {
@@ -49,6 +55,28 @@ public final class RaiseResurrectionAscend {
     public static boolean isDispatchingFinalDeath(ServerPlayer player) {
         DownedState state = DOWNED_PLAYERS.get(player.getUUID());
         return state != null && state.finalDeath.phase() == FinalDeathStateMachine.Phase.DISPATCHING;
+    }
+
+    /** True only for initial protection, original-cause dispatch, or a bounded teammate rescue. */
+    public static boolean permitsNativeTotemCheck(ServerPlayer player) {
+        return !isDowned(player)
+            || isDispatchingFinalDeath(player)
+            || SYNTHETIC_TOTEM_RESCUES.getOrDefault(player.getUUID(), 0) > 0;
+    }
+
+    static boolean withSyntheticTotemRescue(ServerPlayer player, BooleanSupplier invocation) {
+        UUID playerId = player.getUUID();
+        SYNTHETIC_TOTEM_RESCUES.merge(playerId, 1, Integer::sum);
+        try {
+            return invocation.getAsBoolean();
+        } finally {
+            int remaining = SYNTHETIC_TOTEM_RESCUES.getOrDefault(playerId, 1) - 1;
+            if (remaining <= 0) {
+                SYNTHETIC_TOTEM_RESCUES.remove(playerId);
+            } else {
+                SYNTHETIC_TOTEM_RESCUES.put(playerId, remaining);
+            }
+        }
     }
 
     public static boolean enterDowned(ServerPlayer player, DamageSource damageSource) {
@@ -184,18 +212,20 @@ public final class RaiseResurrectionAscend {
         }
         persistDownedState(player, state);
         DOWNED_PLAYERS.remove(player.getUUID());
-        stopCrawling(player);
+        SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
         removeDownedAbsorptionCapacity(player);
     }
 
     public static void restorePlayer(ServerPlayer player) {
+        requirePlatformServices();
         DOWNED_PLAYERS.remove(player.getUUID());
-        CompoundTag persistent = player.getPersistentData();
+        SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
+        DownedStatePersistence.LoadedDownedState persisted = persistence.load(player);
         DownedState state;
         float remainingAbsorption;
-        if (persistent.contains(PERSISTED_STATE, Tag.TAG_COMPOUND)) {
-            CompoundTag saved = persistent.getCompound(PERSISTED_STATE);
-            DowningCauseSnapshot cause = saved.contains(PERSISTED_CAUSE, Tag.TAG_COMPOUND)
+        if (persisted.hasState()) {
+            CompoundTag saved = persisted.state();
+            DowningCauseSnapshot cause = saved != null && saved.contains(PERSISTED_CAUSE, net.minecraft.nbt.Tag.TAG_COMPOUND)
                 ? DowningCauseSnapshot.load(player, saved.getCompound(PERSISTED_CAUSE))
                 : null;
             if (cause == null) {
@@ -203,10 +233,10 @@ public final class RaiseResurrectionAscend {
                 return;
             }
             state = new DownedState(cause);
-            remainingAbsorption = saved.contains(PERSISTED_ABSORPTION, Tag.TAG_ANY_NUMERIC)
+            remainingAbsorption = saved.contains(PERSISTED_ABSORPTION, net.minecraft.nbt.Tag.TAG_ANY_NUMERIC)
                 ? Math.max(0.0F, saved.getFloat(PERSISTED_ABSORPTION))
                 : 0.0F;
-        } else if (persistent.getBoolean(LEGACY_DOWNED)) {
+        } else if (persisted.hasLegacyState()) {
             abandonUnverifiableDownedState(player, "legacy pre-1.0 state has no original cause snapshot");
             return;
         } else {
@@ -229,11 +259,8 @@ public final class RaiseResurrectionAscend {
     private static void abandonUnverifiableDownedState(ServerPlayer player, String reason) {
         LOGGER.error("Clearing unverifiable downed state for {}: {}", player.getGameProfile().getName(), reason);
         DOWNED_PLAYERS.remove(player.getUUID());
-        CompoundTag persistent = player.getPersistentData();
-        persistent.remove(PERSISTED_STATE);
-        persistent.remove(LEGACY_DOWNED);
-        persistent.remove(LEGACY_ABSORPTION);
-        stopCrawling(player);
+        SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
+        persistence.clear(player);
         removeDownedAbsorptionCapacity(player);
         player.setHealth(Math.max(DOWNED_HEALTH, player.getHealth()));
         player.setAbsorptionAmount(0.0F);
@@ -277,10 +304,8 @@ public final class RaiseResurrectionAscend {
 
     private static void clearDownedState(ServerPlayer player, boolean preserveAbsorption) {
         DOWNED_PLAYERS.remove(player.getUUID());
-        player.getPersistentData().remove(PERSISTED_STATE);
-        player.getPersistentData().remove(LEGACY_DOWNED);
-        player.getPersistentData().remove(LEGACY_ABSORPTION);
-        stopCrawling(player);
+        SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
+        persistence.clear(player);
         removeDownedAbsorptionCapacity(player);
         if (!preserveAbsorption) {
             player.setAbsorptionAmount(0.0F);
@@ -293,10 +318,8 @@ public final class RaiseResurrectionAscend {
         saved.putInt("schema", 1);
         saved.putFloat(PERSISTED_ABSORPTION, Math.max(0.0F, player.getAbsorptionAmount()));
         saved.put(PERSISTED_CAUSE, state.cause.save());
-        CompoundTag persistent = player.getPersistentData();
-        persistent.put(PERSISTED_STATE, saved);
-        persistent.remove(LEGACY_DOWNED);
-        persistent.remove(LEGACY_ABSORPTION);
+        requirePlatformServices();
+        persistence.save(player, saved);
     }
 
     private static void syncState(ServerPlayer player, DownedState state, boolean force) {
@@ -307,14 +330,18 @@ public final class RaiseResurrectionAscend {
         if (state != null) {
             state.lastSyncedThreshold = threshold;
         }
+        requirePlatformServices();
         try {
-            PacketDistributor.sendToPlayer(
-                player,
-                new RaiseResurrectionAscendStatePacket(state != null, threshold)
-            );
+            synchronizer.send(player, new RaiseResurrectionAscendStatePacket(state != null, threshold));
         } catch (RuntimeException exception) {
             LOGGER.error("Failed to synchronize downed state to {}", player.getGameProfile().getName(), exception);
             throw exception;
+        }
+    }
+
+    private static void requirePlatformServices() {
+        if (persistence == null || synchronizer == null) {
+            throw new IllegalStateException("RRA platform services are not initialized");
         }
     }
 
@@ -338,15 +365,8 @@ public final class RaiseResurrectionAscend {
     }
 
     private static void beginCrawling(ServerPlayer player) {
-        player.setForcedPose(Pose.SWIMMING);
         player.setPose(Pose.SWIMMING);
         player.setSprinting(false);
-    }
-
-    private static void stopCrawling(ServerPlayer player) {
-        if (player.getForcedPose() == Pose.SWIMMING) {
-            player.setForcedPose(null);
-        }
     }
 
     private static final class DownedState {

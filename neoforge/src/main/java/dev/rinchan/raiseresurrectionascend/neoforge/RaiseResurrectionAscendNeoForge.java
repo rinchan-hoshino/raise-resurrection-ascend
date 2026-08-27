@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
 import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
+import dev.rinchan.raiseresurrectionascend.client.neoforge.RaiseResurrectionAscendNeoForgeClient;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Items;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.event.entity.living.LivingUseTotemEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.slf4j.Logger;
@@ -28,6 +30,10 @@ public class RaiseResurrectionAscendNeoForge {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public RaiseResurrectionAscendNeoForge(IEventBus modBus) {
+        RaiseResurrectionAscend.initialize(
+            new NeoForgeDownedStatePersistence(),
+            (player, packet) -> PacketDistributor.sendToPlayer(player, packet)
+        );
         modBus.addListener(this::registerPayloads);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePre);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePost);
@@ -38,7 +44,7 @@ public class RaiseResurrectionAscendNeoForge {
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            RaiseResurrectionAscendClient.register(modBus);
+            RaiseResurrectionAscendNeoForgeClient.register();
         }
     }
 

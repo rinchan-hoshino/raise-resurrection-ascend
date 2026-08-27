@@ -149,7 +149,7 @@ final class DowningCauseSnapshot {
         if (recordedMessage == null) {
             throw new IllegalStateException("Validated downing death message became empty");
         }
-        return new RecordedMessageDamageSource(type, direct, causing, sourcePosition, recordedMessage);
+        return RecordedMessageDamageSource.create(type, direct, causing, sourcePosition, recordedMessage);
     }
 
     @Nullable
@@ -206,10 +206,37 @@ final class DowningCauseSnapshot {
                 Holder<DamageType> type,
                 @Nullable Entity direct,
                 @Nullable Entity causing,
+                Component recordedMessage) {
+            super(type, direct, causing);
+            this.recordedMessage = recordedMessage.copy();
+        }
+
+        private RecordedMessageDamageSource(
+                Holder<DamageType> type,
+                Vec3 position,
+                Component recordedMessage) {
+            super(type, position);
+            this.recordedMessage = recordedMessage.copy();
+        }
+
+        private RecordedMessageDamageSource(Holder<DamageType> type, Component recordedMessage) {
+            super(type);
+            this.recordedMessage = recordedMessage.copy();
+        }
+
+        private static DamageSource create(
+                Holder<DamageType> type,
+                @Nullable Entity direct,
+                @Nullable Entity causing,
                 @Nullable Vec3 position,
                 Component recordedMessage) {
-            super(type, direct, causing, position);
-            this.recordedMessage = recordedMessage.copy();
+            if (direct != null || causing != null) {
+                return new RecordedMessageDamageSource(type, direct, causing, recordedMessage);
+            }
+            if (position != null) {
+                return new RecordedMessageDamageSource(type, position, recordedMessage);
+            }
+            return new RecordedMessageDamageSource(type, recordedMessage);
         }
 
         @Override

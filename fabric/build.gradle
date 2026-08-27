@@ -1,0 +1,68 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+apply plugin: 'fabric-loom'
+
+def root = rootProject
+
+def modId = root.property('mod_id')
+
+base {
+    archivesName = "${modId}-fabric"
+}
+
+loom {
+    mods {
+        "${modId}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir root.file('common/src/main/java')
+        resources.srcDir root.file('common/src/main/resources')
+    }
+    test {
+        java.srcDir root.file('common/src/test/java')
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${root.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${root.fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${root.fabric_api_version}"
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+processResources {
+    def expansion = [
+        version: root.mod_version,
+        description: root.mod_description,
+        loader_version: root.fabric_loader_version,
+        fabric_api_version: root.fabric_api_version
+    ]
+    inputs.properties(expansion)
+    filesMatching('fabric.mod.json') {
+        expand expansion
+    }
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+}

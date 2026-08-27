@@ -1,6 +1,6 @@
 # Raise & Resurrection & Ascend
 
-A NeoForge mod for Minecraft 1.21.1 that replaces a player's first lethal outcome with a server-authoritative, damage-vulnerable downed state.
+A Fabric and NeoForge mod for Minecraft 1.21.1 that replaces a player's first lethal outcome with a server-authoritative, damage-vulnerable downed state.
 
 ## How it works
 
@@ -27,9 +27,9 @@ These are recommendations only and are not required by RRA.
 ## Requirements
 
 - Minecraft 1.21.1
-- NeoForge 21.1+
+- Fabric Loader 0.19.4 + Fabric API 0.116.15+1.21.1, or NeoForge 21.1+
 - Java 21
-- RRA installed on both client and server; its versioned S2C state channel is required.
+- The matching loader-specific RRA JAR installed on both client and server; its versioned S2C state channel is required.
 
 ## License
 

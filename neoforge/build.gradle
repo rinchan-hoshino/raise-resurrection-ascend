@@ -4,13 +4,17 @@ plugins {
     id 'net.neoforged.moddev'
 }
 
+def root = rootProject
+
+def modId = root.property('mod_id')
+
 base {
-    archivesName = "${rootProject.mod_id}-neoforge"
+    archivesName = "${modId}-neoforge"
 }
 
-sourceSets.main.java.srcDir rootProject.file('common/src/main/java')
-sourceSets.main.resources.srcDir rootProject.file('common/src/main/resources')
-sourceSets.test.java.srcDir rootProject.file('common/src/test/java')
+sourceSets.main.java.srcDir root.file('common/src/main/java')
+sourceSets.main.resources.srcDir root.file('common/src/main/resources')
+sourceSets.test.java.srcDir root.file('common/src/test/java')
 
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.11.4')
@@ -23,15 +27,15 @@ tasks.named('test') {
 
 sourceSets.main.resources.srcDir tasks.register('generateModMetadata', ProcessResources) {
     def replaceProperties = [
-        minecraft_version_range: rootProject.minecraft_version_range,
-        neo_version_range      : rootProject.neo_version_range,
-        loader_version_range   : rootProject.loader_version_range,
-        mod_id                 : rootProject.mod_id,
-        mod_name               : rootProject.mod_name,
-        mod_license            : rootProject.mod_license,
-        mod_version            : rootProject.mod_version,
-        mod_authors            : rootProject.mod_authors,
-        mod_description        : rootProject.mod_description
+        minecraft_version_range: root.minecraft_version_range,
+        neo_version_range      : root.neo_version_range,
+        loader_version_range   : root.loader_version_range,
+        mod_id                 : modId,
+        mod_name               : root.mod_name,
+        mod_license            : root.mod_license,
+        mod_version            : root.mod_version,
+        mod_authors            : root.mod_authors,
+        mod_description        : root.mod_description
     ]
     inputs.properties replaceProperties
     filteringCharset = 'UTF-8'
@@ -41,9 +45,9 @@ sourceSets.main.resources.srcDir tasks.register('generateModMetadata', ProcessRe
 }
 
 neoForge {
-    version = rootProject.neo_version
+    version = root.neo_version
     mods {
-        "${rootProject.mod_id}" {
+        "${modId}" {
             sourceSet(sourceSets.main)
         }
     }
@@ -64,7 +68,7 @@ neoForge.ideSyncTask tasks.named('generateModMetadata')
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = "${rootProject.mod_id}-neoforge"
+            artifactId = "${modId}-neoforge"
             from components.java
         }
     }

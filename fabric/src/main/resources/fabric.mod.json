@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "raise_resurrection_ascend",
+  "version": "${version}",
+  "name": "Raise & Resurrection & Ascend",
+  "description": "${description}",
+  "authors": ["RinChan"],
+  "license": "GPL-3.0-or-later",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.rinchan.raiseresurrectionascend.fabric.RaiseResurrectionAscendFabric"
+    ],
+    "client": [
+      "dev.rinchan.raiseresurrectionascend.client.fabric.RaiseResurrectionAscendFabricClient"
+    ]
+  },
+  "mixins": [
+    "raise_resurrection_ascend.mixins.json",
+    "raise_resurrection_ascend.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "=1.21.1",
+    "java": ">=21",
+    "fabric-api": ">=${fabric_api_version}"
+  },
+  "custom": {
+    "raise_resurrection_ascend:network_version": "1.0.0"
+  }
+}

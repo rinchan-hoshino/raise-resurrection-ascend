@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 final class TotemPriorityContractTest {
     @Test
     void nativeTotemHooksAreObservedAndFeederDelegatesToNativeTotemActivation() throws Exception {
-        String adapter = source("neoforge/RaiseResurrectionAscendNeoForge.java");
+        String adapter = Files.readString(root().resolve("neoforge/src/main/java/dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java"));
         String totem = source("TotemProtection.java");
         String invoker = source("mixin/LivingEntityTotemInvoker.java");
         assertTrue(adapter.contains("LivingUseTotemEvent"));
