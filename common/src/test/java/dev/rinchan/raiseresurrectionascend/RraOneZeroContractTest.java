@@ -16,7 +16,9 @@ final class RraOneZeroContractTest {
         String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String totem = source("TotemProtection.java");
 
-        assertTrue(lifecycle.contains("player.hurt(downingSource, Float.MAX_VALUE)"));
+        assertTrue(lifecycle.contains("player.hurt(downingSource, FINAL_DEATH_DAMAGE)"));
+        assertTrue(lifecycle.contains("private static final float FINAL_DEATH_DAMAGE = 1_000_000.0F;"));
+        assertFalse(lifecycle.contains("Float.MAX_VALUE"));
         assertFalse(lifecycle.contains("player.die("));
         assertTrue(cause.contains("damage_type"));
         assertTrue(cause.contains("direct_entity"));

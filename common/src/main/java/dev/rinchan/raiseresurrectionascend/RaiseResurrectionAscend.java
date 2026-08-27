@@ -27,6 +27,7 @@ public final class RaiseResurrectionAscend {
     private static final String PERSISTED_ABSORPTION = "remaining_absorption";
     private static final float DOWNED_HEALTH = 1.0F;
     private static final float ABSORPTION_TOLERANCE = 0.001F;
+    private static final float FINAL_DEATH_DAMAGE = 1_000_000.0F;
     private static final int DOWNED_INVISIBILITY_TICKS = 20 * 3;
     private static final ResourceLocation DOWNED_ABSORPTION_CAPACITY = ResourceLocation.fromNamespaceAndPath(
         MOD_ID,
@@ -287,7 +288,7 @@ public final class RaiseResurrectionAscend {
             // The accepted finishing hit just refreshed hurt invulnerability; this dispatch is its death phase,
             // not a second hit that should be discarded by that cooldown.
             player.invulnerableTime = 0;
-            player.hurt(downingSource, Float.MAX_VALUE);
+            player.hurt(downingSource, FINAL_DEATH_DAMAGE);
         } catch (RuntimeException exception) {
             LOGGER.error("Original-cause final-death dispatch failed for {}", player.getGameProfile().getName(), exception);
             state.finalDeath.completeDispatch(player.getHealth() > 0.0F);
