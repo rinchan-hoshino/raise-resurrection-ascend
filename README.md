@@ -1,45 +1,36 @@
 # Raise & Resurrection & Ascend
 
-**Give players a downed state before final death.**
+A NeoForge mod for Minecraft 1.21.1 that replaces a player's first lethal outcome with a server-authoritative, damage-vulnerable downed state.
 
-Raise & Resurrection & Ascend keeps a player from dying immediately when lethal damage would reduce them to zero health. Instead, the player enters a crawling downed state and must recover to the lower of maximum health or 20 health before their absorption clock runs out.
+## How it works
 
-## Default behavior
+- Native death protection runs first. A held Totem of Undying can save the initial lethal hit normally.
+- Otherwise, lethal damage downs the player at 1 health, starts the existing absorption clock, and forces the crawling presentation.
+- Further damage consumes that absorption clock. When the clock expires or follow-up damage finishes it, the original downing source re-enters Minecraft's native damage and death-protection pipeline.
+- A held Totem of Undying can therefore also protect the final death attempt.
+- Healing revives the player at `min(max health, 20)` health. The HUD displays that current server-authoritative threshold.
+- Another player can right-click a downed player while holding a vanilla Totem of Undying. One totem is consumed unless the helper is in Creative mode, and the recipient receives the native totem result, effects, advancement/stat trigger, game event, and animation.
 
-- Lethal damage puts the player into a downed state instead of killing them immediately.
-- A downed player starts at 1 health, remains crawling, receives 3 seconds of Invisibility, and gains absorption equal to their maximum health.
-- The absorption clock drains one 1200th of maximum health each tick, so the generated bar lasts exactly 1200 ticks, or 1 minute.
-- Any normal mechanic that adds absorption extends the downed time; damage, effect removal, and every other normal absorption reduction shorten it without special integrations.
-- Reaching zero absorption causes final death. Reaching the lower of maximum health or 20 health first ends the downed state and clears the remaining clock.
-- Healing, regeneration and instant-health effects continue to affect downed players.
-- Downed players continue to take normal damage. A lethal follow-up, absorption depletion, or give-up keeps the DamageSource that originally downed them for death messages and death-event consumers.
-- Food items and food-derived healing are not modified by this mod; consuming packs and food mods own those rules.
-- The downed player sees a persistent HUD with the recovery rule and bound give-up key; the vanilla absorption hearts are the visible remaining-time bar.
-- Entering the downed state sends one chat message through Minecraft's death-message delivery rules, including `showDeathMessages` and team visibility; final death keeps its separate vanilla death message.
-- The mod does not imitate or consume Totems of Undying. Vanilla death-protection effects run first; downing is only the fallback when they do not save the player.
-- Holding G for 2 seconds gives up and triggers final death.
-- `/raise_resurrection_ascend revive <targets>` is an administrator override that fills the targets' health and ends their downed state.
+The original downing cause survives reconnects and server restarts as a structured snapshot: damage type, entity UUIDs and dimensions, source position, and the immutable localized death message. Final deaths keep that original cause even when referenced entities are no longer loaded. A legacy or corrupted downed record with no verifiable original cause is safely cleared instead of inventing a different death source.
 
-## Configuration
+Death and downed announcements respect vanilla `showDeathMessages` and team death-message visibility.
 
-Config file:
+## Compatibility recommendations
 
-```text
-config/raise_resurrection_ascend-common.toml
-```
+RRA has no compile-time or metadata dependency on other gameplay mods. For a broader co-op recovery setup, consider:
 
-Default value:
+- **Let Your Friend Eating** for ordinary friend-feeding interactions.
+- An **Always Eat / No Hunger** style mod so healing foods remain usable when the hunger bar would normally prevent eating.
 
-```toml
-[downed]
-giveUpHoldTicks = 40
-```
-
-## Compatibility
-
-When Let Your Friend Eating! 1.1.4 is installed, players can feed ordinary food, stew, and Eternal Food to another player even at full hunger. Players can also give another player any drink-animation consumable during ordinary play; the original milk-bucket path remains authoritative. The feeding mod's configured cooldown and feed/eaten statistics remain shared across food and drink interactions.
+These are recommendations only and are not required by RRA.
 
 ## Requirements
 
 - Minecraft 1.21.1
-- NeoForge
+- NeoForge 21.1+
+- Java 21
+- RRA installed on both client and server; its versioned S2C state channel is required.
+
+## License
+
+GPL-3.0-or-later

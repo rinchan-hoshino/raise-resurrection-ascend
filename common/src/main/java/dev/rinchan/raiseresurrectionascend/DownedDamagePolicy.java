@@ -8,10 +8,10 @@ public final class DownedDamagePolicy {
         return damage > 0.0F && damage >= Math.max(0.0F, absorption);
     }
 
-    public static float damageForDeathProtection(float absorption, float health, float damage) {
+    public static float damageBeforeOriginalDispatch(float absorption, float damage) {
         if (!finishesDownedState(absorption, damage)) {
             return damage;
         }
-        return Math.max(damage, Math.max(0.0F, absorption) + Math.max(0.0F, health));
+        return Math.max(0.0F, absorption);
     }
 }

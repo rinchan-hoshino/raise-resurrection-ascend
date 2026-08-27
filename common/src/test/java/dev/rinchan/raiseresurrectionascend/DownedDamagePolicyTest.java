@@ -1,26 +1,23 @@
 package dev.rinchan.raiseresurrectionascend;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 final class DownedDamagePolicyTest {
     @Test
-    void ordinaryHitsKeepTheirPostMitigationDamage() {
-        assertEquals(7.0F, DownedDamagePolicy.damageForDeathProtection(20.0F, 1.0F, 7.0F));
-        assertEquals(7.0F, DownedDamagePolicy.damageForDeathProtection(13.0F, 1.0F, 7.0F));
+    void damageBelowRemainingAbsorptionDoesNotFinishDownedState() {
+        assertFalse(DownedDamagePolicy.finishesDownedState(10.0F, 4.0F));
+        assertFalse(DownedDamagePolicy.finishesDownedState(0.0F, 0.0F));
+        assertEquals(4.0F, DownedDamagePolicy.damageBeforeOriginalDispatch(10.0F, 4.0F));
     }
 
     @Test
-    void absorptionClearingHitsReachZeroHealthSoVanillaCanCheckTotems() {
-        assertEquals(7.0F, DownedDamagePolicy.damageForDeathProtection(6.0F, 1.0F, 7.0F));
-        assertEquals(21.0F, DownedDamagePolicy.damageForDeathProtection(20.0F, 1.0F, 20.0F));
-        assertEquals(21.0F, DownedDamagePolicy.damageForDeathProtection(20.0F, 1.0F, 21.0F));
-    }
-
-    @Test
-    void zeroOrNegativeDamageRemainsNonLethal() {
-        assertEquals(0.0F, DownedDamagePolicy.damageForDeathProtection(0.0F, 1.0F, 0.0F));
-        assertEquals(-1.0F, DownedDamagePolicy.damageForDeathProtection(0.0F, 1.0F, -1.0F));
+    void finishingDamageStopsAtAbsorptionBoundaryForOriginalCauseDispatch() {
+        assertTrue(DownedDamagePolicy.finishesDownedState(10.0F, 10.0F));
+        assertEquals(10.0F, DownedDamagePolicy.damageBeforeOriginalDispatch(10.0F, 100.0F));
+        assertEquals(0.0F, DownedDamagePolicy.damageBeforeOriginalDispatch(0.0F, 2.0F));
     }
 }

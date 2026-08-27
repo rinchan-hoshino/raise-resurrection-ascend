@@ -13,7 +13,6 @@ sourceSets.main.resources.srcDir rootProject.file('common/src/main/resources')
 sourceSets.test.java.srcDir rootProject.file('common/src/test/java')
 
 dependencies {
-    compileOnly "curse.maven:let-your-friend-eating-can-feed-other-player-1206957:7544704"
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
@@ -54,13 +53,8 @@ neoForge {
             server()
             programArgument '--nogui'
         }
-        gameTestServer {
-            type = 'gameTestServer'
-        }
         configureEach {
             logLevel = org.slf4j.event.Level.INFO
-            systemProperty 'raiseResurrectionAscend.screenshot', System.getProperty('raiseResurrectionAscend.screenshot', 'false')
-            systemProperty 'raiseResurrectionAscend.screenshot.dir', System.getProperty('raiseResurrectionAscend.screenshot.dir', '')
         }
     }
 }

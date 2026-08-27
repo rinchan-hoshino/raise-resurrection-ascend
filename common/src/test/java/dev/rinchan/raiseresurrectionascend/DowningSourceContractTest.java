@@ -1,44 +1,34 @@
 package dev.rinchan.raiseresurrectionascend;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 final class DowningSourceContractTest {
     @Test
-    void finalDeathUsesTheDamageSourceThatEnteredTheDownedState() throws IOException {
-        String source = Files.readString(findSource());
-
-        assertTrue(source.contains("enterDowned(ServerPlayer player, DamageSource damageSource)"));
-        assertTrue(source.contains("DOWNING_SOURCES.put(player.getUUID(), damageSource)"));
-        assertTrue(source.contains("player.getCombatTracker().recordDamage(downingSource"));
-        assertTrue(source.contains("player.die(downingSource)"));
+    void finalDeathUsesReconstructedOriginalSourceInsteadOfDirectDie() throws Exception {
+        String lifecycle = source("RaiseResurrectionAscend.java");
+        String snapshot = source("DowningCauseSnapshot.java");
+        assertTrue(lifecycle.contains("DamageSource downingSource = state.cause.reconstruct(player)"));
+        assertTrue(lifecycle.contains("player.hurt(downingSource, Float.MAX_VALUE)"));
+        assertFalse(lifecycle.contains("player.die("));
+        assertFalse(lifecycle.contains("genericKill()"));
+        assertTrue(snapshot.contains("RecordedMessageDamageSource"));
+        assertTrue(snapshot.contains("return recordedMessage.copy()"));
+        assertFalse(snapshot.contains("genericKill()"));
     }
 
-    @Test
-    void timerAndGiveUpDeathsAreMarkedFinalBeforeReenteringTheDeathEvent() throws IOException {
-        String source = Files.readString(findSource());
-        int dieStart = source.indexOf("private static void dieNow");
-        int dieEnd = source.indexOf("private static void beginCrawling", dieStart);
-        String dieBody = source.substring(dieStart, dieEnd);
-
-        assertTrue(dieBody.indexOf("FINAL_DEATH.add") < dieBody.indexOf("player.die(downingSource)"));
-        assertTrue(source.contains("if (PENDING_FINAL_DEATH.remove(player.getUUID()))"));
+    private static String source(String file) throws Exception {
+        return Files.readString(root().resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend").resolve(file));
     }
 
-    private static Path findSource() {
+    private static Path root() {
         Path current = Path.of("").toAbsolutePath();
-        while (current != null) {
-            Path candidate = current.resolve(
-                    "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java");
-            if (Files.isRegularFile(candidate)) {
-                return candidate;
-            }
-            current = current.getParent();
-        }
-        throw new IllegalStateException("Cannot locate RaiseResurrectionAscend.java");
+        while (current != null && !Files.isDirectory(current.resolve("common/src/main"))) current = current.getParent();
+        if (current == null) throw new IllegalStateException("Cannot locate project root");
+        return current;
     }
 }

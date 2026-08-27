@@ -4,8 +4,7 @@
   "package": "dev.rinchan.raiseresurrectionascend.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PlayerFeederMixin",
-    "SpecialFoodHandlerMixin"
+    "LivingEntityTotemInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

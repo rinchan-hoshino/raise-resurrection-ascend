@@ -3,65 +3,28 @@ package dev.rinchan.raiseresurrectionascend;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 final class DownedPresentationContractTest {
     @Test
-    void downedEntryUsesVanillaDeathMessageDeliverySemantics() throws IOException {
-        String lifecycle = Files.readString(source("RaiseResurrectionAscend.java"));
-        assertTrue(lifecycle.contains("DeathMessageDelivery.broadcast("));
-        assertTrue(lifecycle.contains("            player,"));
-        assertTrue(lifecycle.contains("message.raise_resurrection_ascend.downed_other"));
-        assertFalse(lifecycle.contains("displayClientMessage"));
-        assertFalse(lifecycle.contains("broadcastSystemMessage"));
-
-        String delivery = Files.readString(source("DeathMessageDelivery.java"));
-        assertTrue(delivery.contains("GameRules.RULE_SHOWDEATHMESSAGES"));
-        assertTrue(delivery.contains("getDeathMessageVisibility"));
-        assertTrue(delivery.contains("Team.Visibility.ALWAYS"));
-        assertTrue(delivery.contains("Team.Visibility.HIDE_FOR_OTHER_TEAMS"));
-        assertTrue(delivery.contains("Team.Visibility.HIDE_FOR_OWN_TEAM"));
-        assertTrue(delivery.contains("broadcastSystemMessage"));
-        assertTrue(delivery.contains("broadcastSystemToTeam"));
-        assertTrue(delivery.contains("broadcastSystemToAllExceptTeam"));
+    void crawlIsServerForcedAndHudShowsOnlyDynamicRecoveryThreshold() throws Exception {
+        Path root = root();
+        String lifecycle = Files.readString(root.resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java"));
+        String client = Files.readString(root.resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend/client/RaiseResurrectionAscendClient.java"));
+        String english = Files.readString(root.resolve("common/src/main/resources/assets/raise_resurrection_ascend/lang/en_us.json"));
+        assertTrue(lifecycle.contains("setForcedPose(Pose.SWIMMING)"));
+        assertTrue(client.contains("packet.recoveryThreshold()"));
+        assertTrue(client.contains("formatHealth(recoveryThreshold)"));
+        assertFalse(client.contains("give_up"));
+        assertFalse(english.contains("give up"));
     }
 
-    @Test
-    void hudShowsOnlyRecoveryGiveUpAndAnAlwaysRenderedProgressBar() throws IOException {
-        String client = Files.readString(source("client/RaiseResurrectionAscendClient.java"));
-        assertFalse(client.contains("hud.raise_resurrection_ascend.downed"));
-        assertFalse(client.contains("giveUpHoldTicks.get() / 20"));
-        assertTrue(client.contains("GiveUpHoldProgress.ratio"));
-        assertTrue(client.contains("PROGRESS_BAR_WIDTH"));
-
-        String lang = Files.readString(resource("zh_cn.json"));
-        assertFalse(lang.contains("message.raise_resurrection_ascend.downed_self"));
-        assertFalse(lang.contains("message.raise_resurrection_ascend.recovered"));
-        assertFalse(lang.contains("hud.raise_resurrection_ascend.downed"));
-        assertTrue(lang.contains("\"hud.raise_resurrection_ascend.recovery\": \"恢复至满血可以解除濒死状态\""));
-        assertTrue(lang.contains("\"hud.raise_resurrection_ascend.give_up\": \"长按 %s 放弃\""));
-        assertTrue(lang.contains("\"message.raise_resurrection_ascend.downed_other\": \"%s 倒地了。\""));
-    }
-
-    private static Path source(String relative) {
-        return locateRoot().resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend").resolve(relative);
-    }
-
-    private static Path resource(String filename) {
-        return locateRoot().resolve("common/src/main/resources/assets/raise_resurrection_ascend/lang").resolve(filename);
-    }
-
-    private static Path locateRoot() {
+    private static Path root() {
         Path current = Path.of("").toAbsolutePath();
-        while (current != null) {
-            if (Files.isDirectory(current.resolve("common/src/main"))) {
-                return current;
-            }
-            current = current.getParent();
-        }
-        throw new IllegalStateException("Cannot locate project root");
+        while (current != null && !Files.isDirectory(current.resolve("common/src/main"))) current = current.getParent();
+        if (current == null) throw new IllegalStateException("Cannot locate project root");
+        return current;
     }
 }

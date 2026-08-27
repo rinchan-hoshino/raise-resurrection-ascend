@@ -1,100 +1,107 @@
 package dev.rinchan.raiseresurrectionascend.neoforge;
 
-import dev.rinchan.raiseresurrectionascend.DownedDamagePolicy;
+import com.mojang.logging.LogUtils;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
-import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendConfig;
-import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpPacket;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
 import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
-import dev.rinchan.raiseresurrectionascend.client.ScreenshotClientHarness;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingUseTotemEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.slf4j.Logger;
+
 @Mod(RaiseResurrectionAscend.MOD_ID)
 public class RaiseResurrectionAscendNeoForge {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public RaiseResurrectionAscendNeoForge(IEventBus modBus) {
-        ModLoadingContext.get().getActiveContainer().registerConfig(ModConfig.Type.COMMON, RaiseResurrectionAscendConfig.SPEC);
         modBus.addListener(this::registerPayloads);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePre);
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOW, this::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePost);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingUseTotem);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
-        NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
-        if (Boolean.getBoolean("raiseResurrectionAscend.screenshot")) {
-            ScreenshotServerHarness.register();
-        }
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RaiseResurrectionAscendClient.register(modBus);
-            if (Boolean.getBoolean("raiseResurrectionAscend.screenshot")) {
-                ScreenshotClientHarness.register();
-            }
         }
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1").optional();
-        registrar.playToServer(RaiseResurrectionAscendGiveUpPacket.TYPE, RaiseResurrectionAscendGiveUpPacket.CODEC, (packet, context) -> {
-            context.enqueueWork(() -> {
-                if (context.player() instanceof ServerPlayer player) {
-                    RaiseResurrectionAscend.giveUp(player);
-                }
-            }).exceptionally(throwable -> null);
-        });
-        registrar.playToClient(RaiseResurrectionAscendStatePacket.TYPE, RaiseResurrectionAscendStatePacket.CODEC, (packet, context) ->
-            context.enqueueWork(() -> RaiseResurrectionAscendClient.applyState(packet)).exceptionally(throwable -> null)
+        PayloadRegistrar registrar = event.registrar("1.0.0");
+        registrar.playToClient(
+            RaiseResurrectionAscendStatePacket.TYPE,
+            RaiseResurrectionAscendStatePacket.CODEC,
+            (packet, context) -> context.enqueueWork(() -> RaiseResurrectionAscendClient.applyState(packet))
+                .whenComplete((ignored, throwable) -> {
+                    if (throwable != null) {
+                        LOGGER.error("Failed to apply downed-state payload", throwable);
+                    }
+                })
         );
     }
 
     private void onLivingDamagePre(LivingDamageEvent.Pre event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
-            return;
+        if (event.getEntity() instanceof ServerPlayer player) {
+            event.setNewDamage(RaiseResurrectionAscend.adjustDownedDamage(player, event.getNewDamage()));
         }
-        if (RaiseResurrectionAscend.isPendingFinalDeath(player)) {
-            event.setNewDamage(0F);
-            return;
+    }
+
+    private void onLivingDamagePost(LivingDamageEvent.Post event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            RaiseResurrectionAscend.resolveDownedDamage(player);
         }
-        if (RaiseResurrectionAscend.isFinalDeath(player)) {
-            return;
-        }
-        float damage = event.getNewDamage();
-        if (RaiseResurrectionAscend.isDowned(player)
-                && DownedDamagePolicy.finishesDownedState(player.getAbsorptionAmount(), damage)) {
-            event.setNewDamage(DownedDamagePolicy.damageForDeathProtection(
-                player.getAbsorptionAmount(),
-                player.getHealth(),
-                damage
-            ));
-            RaiseResurrectionAscend.awaitDamageResolution(player);
+    }
+
+    private void onLivingUseTotem(LivingUseTotemEvent event) {
+        if (!event.isCanceled() && event.getEntity() instanceof ServerPlayer player) {
+            RaiseResurrectionAscend.observeNativeTotemTrigger(player);
         }
     }
 
     private void onLivingDeath(LivingDeathEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)
-                || RaiseResurrectionAscend.isFinalDeath(player)) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        if (RaiseResurrectionAscend.isDowned(player)) {
-            RaiseResurrectionAscend.finishDownedDeath(player);
+        if (!RaiseResurrectionAscend.isDowned(player)) {
+            if (RaiseResurrectionAscend.enterDowned(player, event.getSource())) {
+                event.setCanceled(true);
+            }
+            return;
+        }
+        if (RaiseResurrectionAscend.isDispatchingFinalDeath(player)) {
+            RaiseResurrectionAscend.observeFinalDeath(player);
             return;
         }
         event.setCanceled(true);
-        RaiseResurrectionAscend.enterDowned(player, event.getSource());
+        RaiseResurrectionAscend.requestOriginalFinalDeath(player);
+    }
+
+    private void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        if (!(event.getEntity() instanceof ServerPlayer feeder)
+                || !(event.getTarget() instanceof ServerPlayer recipient)
+                || !feeder.getItemInHand(event.getHand()).is(Items.TOTEM_OF_UNDYING)) {
+            return;
+        }
+        if (RaiseResurrectionAscend.tryFeedTotem(feeder, recipient, event.getHand())) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+        }
     }
 
     private void onServerTick(ServerTickEvent.Post event) {
@@ -111,21 +118,5 @@ public class RaiseResurrectionAscendNeoForge {
         if (event.getEntity() instanceof ServerPlayer player) {
             RaiseResurrectionAscend.suspendPlayer(player);
         }
-    }
-
-    private void onRegisterCommands(RegisterCommandsEvent event) {
-        event.getDispatcher().register(Commands.literal("raise_resurrection_ascend")
-            .requires(source -> source.hasPermission(2))
-            .then(Commands.literal("revive")
-                .then(Commands.argument("targets", EntityArgument.players())
-                    .executes(context -> {
-                        int count = 0;
-                        for (ServerPlayer player : EntityArgument.getPlayers(context, "targets")) {
-                            if (RaiseResurrectionAscend.reviveByCommand(player)) {
-                                count++;
-                            }
-                        }
-                        return count;
-                    }))));
     }
 }

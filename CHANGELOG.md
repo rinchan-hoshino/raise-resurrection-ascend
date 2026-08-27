@@ -1,31 +1,14 @@
 # Changelog
 
-## 0.6.5
+## 1.0.0
 
-- Remove the ordinary apple's one-heart food effect and its private mob-effect registration.
-- Leave all food consumption and healing rules to the consuming pack or other food mods.
-
-## 0.6.4
-
-- Grant 3 seconds of Invisibility on entering the downed state.
-- Generate temporary absorption equal to maximum health while preserving the one-minute absorption clock.
-- Recover at the lower of maximum health or 20 health.
-- Keep all existing in-game recovery and downed-state wording unchanged.
-
-## 0.6.3
-
-### Added
-
-- Absorption capacity while downed, so the full one-minute countdown is represented by ordinary absorption health.
-- Full-hunger food and drink handoff support when Let Your Friend Eating! is installed.
-- Ordinary apple food effects that heal one heart, including apples eaten normally or fed to a downed player.
-
-### Fixed
-
-- Persist the absorption countdown across reconnects.
-- Finish the downed state consistently when recovery succeeds or the absorption clock reaches zero.
-- Let vanilla death-protection effects, including Totems of Undying, run before downing is considered.
-
-### Changed
-
-- Simplified downed-state player messages while retaining the persistent HUD and give-up control.
+- Redesigned the mod around a server-authoritative, damage-vulnerable downed state while retaining the absorption clock and crawl presentation.
+- Healing now revives at the dynamic `min(max health, 20)` threshold shown by the HUD.
+- Preserved native Totem of Undying protection on both the initial lethal transition and the original-cause final death attempt.
+- Added vanilla-totem assistance: another player may right-click a downed player to consume one totem (except in Creative) and apply the recipient's native totem result.
+- Persisted a structured original-cause snapshot with damage type, entity UUID/dimension references, source position, and immutable localized death message across reconnects and restarts.
+- Routed timeout and follow-up final deaths back through Minecraft's native damage/death-protection pipeline using a bounded state machine.
+- Made the versioned S2C state channel required and reset client state explicitly on login/logout.
+- Kept death-message delivery aligned with vanilla game-rule and team visibility.
+- Removed friend-drink/feeding integration, Let Your Friend Eating dependencies, give-up controls and networking, admin revive commands, feeding mixins, screenshot harnesses, and GameTest production resources.
+- Added focused pure policy/state-machine tests and static public-contract checks.

@@ -1,34 +1,30 @@
 package dev.rinchan.raiseresurrectionascend;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 
-class PublishedVersionContractTest {
+final class PublishedVersionContractTest {
     @Test
-    void releaseUsesStandardPublicVersionWithoutPrivateSuffix() throws Exception {
+    void publicVersionIsOneZeroZero() throws Exception {
         Properties properties = new Properties();
-        try (var reader = Files.newBufferedReader(findProjectFile("gradle.properties"))) {
+        try (var reader = Files.newBufferedReader(root().resolve("gradle.properties"))) {
             properties.load(reader);
         }
-        String version = properties.getProperty("mod_version");
-        assertEquals("0.6.4", version);
-        assertFalse(version.contains("private"));
+        assertEquals("1.0.0", properties.getProperty("mod_version"));
     }
 
-    private static Path findProjectFile(String relative) throws Exception {
+    private static Path root() {
         Path current = Path.of("").toAbsolutePath();
-        while (current != null) {
-            Path candidate = current.resolve(relative);
-            if (Files.isRegularFile(candidate)) {
-                return candidate;
-            }
+        while (current != null && !Files.exists(current.resolve("gradle.properties"))) {
             current = current.getParent();
         }
-        throw new IllegalStateException("Unable to locate " + relative);
+        if (current == null) {
+            throw new IllegalStateException("Cannot locate project root");
+        }
+        return current;
     }
 }

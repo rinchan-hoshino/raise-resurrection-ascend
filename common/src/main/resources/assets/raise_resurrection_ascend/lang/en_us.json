@@ -1,7 +1,4 @@
 {
-  "key.categories.raise_resurrection_ascend": "Raise & Resurrection & Ascend",
-  "key.raise_resurrection_ascend.give_up": "Give up while downed",
-  "message.raise_resurrection_ascend.downed_other": "%s is downed.",
-  "hud.raise_resurrection_ascend.recovery": "Recover to full health to leave the downed state",
-  "hud.raise_resurrection_ascend.give_up": "Hold %s to give up"
+  "message.raise_resurrection_ascend.downed_other": "%s was downed!",
+  "hud.raise_resurrection_ascend.recovery": "Heal to %s health to recover"
 }

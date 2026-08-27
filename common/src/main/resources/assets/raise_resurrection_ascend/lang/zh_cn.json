@@ -1,7 +1,4 @@
 {
-  "key.categories.raise_resurrection_ascend": "Raise & Resurrection & Ascend",
-  "key.raise_resurrection_ascend.give_up": "濒死时放弃挣扎",
-  "message.raise_resurrection_ascend.downed_other": "%s 倒地了。",
-  "hud.raise_resurrection_ascend.recovery": "恢复至满血可以解除濒死状态",
-  "hud.raise_resurrection_ascend.give_up": "长按 %s 放弃"
+  "message.raise_resurrection_ascend.downed_other": "%s 倒下了！",
+  "hud.raise_resurrection_ascend.recovery": "生命值恢复至 %s 即可起身"
 }

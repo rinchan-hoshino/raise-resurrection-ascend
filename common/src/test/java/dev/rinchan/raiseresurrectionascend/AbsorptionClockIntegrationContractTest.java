@@ -1,53 +1,31 @@
 package dev.rinchan.raiseresurrectionascend;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-class AbsorptionClockIntegrationContractTest {
+final class AbsorptionClockIntegrationContractTest {
     @Test
-    void downedLifecycleUsesLiveAbsorptionInsteadOfAnIndependentDeadline() throws IOException {
-        String lifecycle = readSource(
-            "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java"
-        );
-        assertTrue(lifecycle.contains("ensureDownedAbsorptionCapacity(player)"));
-        assertTrue(lifecycle.contains("player.getAttribute(Attributes.MAX_ABSORPTION)"));
-        assertTrue(lifecycle.contains("capacity.addTransientModifier(new AttributeModifier("));
-        assertTrue(lifecycle.contains("DownedAbsorptionPolicy.initialAbsorption("));
-        assertTrue(lifecycle.contains("DownedAbsorptionPolicy.drain("));
-        assertTrue(lifecycle.contains("MobEffects.INVISIBILITY, DOWNED_INVISIBILITY_TICKS"));
-        assertTrue(lifecycle.contains("DOWNED_INVISIBILITY_TICKS = 20 * 3"));
-        assertTrue(lifecycle.contains("player.setAbsorptionAmount(result.absorption())"));
-        assertTrue(lifecycle.contains("persistDownedState(player)"));
-        assertTrue(lifecycle.contains("public static void suspendPlayer"));
-        assertTrue(lifecycle.contains("public static void restorePlayer"));
-        assertTrue(lifecycle.contains("remainingAbsorption"));
-        assertFalse(lifecycle.contains("DOWNED_UNTIL_TICK"));
-        assertFalse(lifecycle.contains("downedDurationTicks"));
-        assertTrue(lifecycle.contains("capacity.removeModifier(DOWNED_ABSORPTION_CAPACITY)"));
-        assertTrue(lifecycle.contains(
-            "DownedAbsorptionPolicy.generatedAbsorption(player.getMaxHealth())"
-        ));
-
-        String packet = readSource(
-            "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscendStatePacket.java"
-        );
-        assertFalse(packet.contains("remainingTicks"));
+    void lifecycleUsesOneAbsorptionClockForEntryTickAndPersistence() throws Exception {
+        String source = Files.readString(sourcePath("RaiseResurrectionAscend.java"));
+        assertTrue(source.contains("DownedAbsorptionPolicy.initialAbsorption"));
+        assertTrue(source.contains("DownedAbsorptionPolicy.drain"));
+        assertTrue(source.contains("remaining_absorption"));
+        assertTrue(source.contains("state.finalDeath.requestFinalDeath()"));
     }
 
-    private static String readSource(String relative) throws IOException {
+    private static Path sourcePath(String file) {
+        return root().resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend").resolve(file);
+    }
+
+    private static Path root() {
         Path current = Path.of("").toAbsolutePath();
-        while (current != null) {
-            Path candidate = current.resolve(relative);
-            if (Files.isRegularFile(candidate)) {
-                return Files.readString(candidate);
-            }
+        while (current != null && !Files.isDirectory(current.resolve("common/src/main"))) {
             current = current.getParent();
         }
-        throw new IOException("Unable to locate " + relative);
+        if (current == null) throw new IllegalStateException("Cannot locate project root");
+        return current;
     }
 }
