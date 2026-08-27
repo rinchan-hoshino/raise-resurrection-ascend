@@ -160,6 +160,14 @@ public final class RaiseResurrectionAscend {
         persistDownedState(player, state);
     }
 
+    /** Applies only an input transition; completion is counted exclusively by the server tick. */
+    public static void handleGiveUpInput(ServerPlayer player, boolean pressed) {
+        DownedState state = DOWNED_PLAYERS.get(player.getUUID());
+        if (state != null) {
+            state.giveUp.setPressed(pressed);
+        }
+    }
+
     public static boolean tryFeedTotem(ServerPlayer feeder, ServerPlayer recipient, InteractionHand hand) {
         if (feeder == recipient) {
             return false;
@@ -185,6 +193,9 @@ public final class RaiseResurrectionAscend {
             if (DownedRecoveryPolicy.canRecover(player.getHealth(), player.getMaxHealth())) {
                 clearDownedState(player, false);
                 continue;
+            }
+            if (state.giveUp.tickAndIsComplete()) {
+                state.finalDeath.requestFinalDeath();
             }
             if (state.finalDeath.phase() == FinalDeathStateMachine.Phase.REQUESTED) {
                 dispatchFinalDeath(player, state);
@@ -372,6 +383,7 @@ public final class RaiseResurrectionAscend {
     private static final class DownedState {
         private final DowningCauseSnapshot cause;
         private final FinalDeathStateMachine finalDeath = new FinalDeathStateMachine();
+        private final GiveUpHoldState giveUp = new GiveUpHoldState();
         private boolean boundaryDamagePending;
         private float lastSyncedThreshold = Float.NaN;
 

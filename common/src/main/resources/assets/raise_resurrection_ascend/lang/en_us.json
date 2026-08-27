@@ -1,4 +1,7 @@
 {
   "message.raise_resurrection_ascend.downed_other": "%s was downed!",
-  "hud.raise_resurrection_ascend.recovery": "Heal to %s health to recover"
+  "hud.raise_resurrection_ascend.recovery": "Heal to %s health to recover",
+  "hud.raise_resurrection_ascend.give_up": "Hold %s for %s seconds to give up",
+  "key.raise_resurrection_ascend.give_up": "Give Up",
+  "key.categories.raise_resurrection_ascend": "Raise & Resurrection & Ascend"
 }

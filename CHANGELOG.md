@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Restored the hold-G give-up path as a server-authoritative 40-tick input state: clients report only key transitions, while the server owns completion.
+- Routed give-up through the persisted original downing cause and native final-death totem pipeline.
+- Restored localized HUD instruction and progress presentation without restoring any feeding, drink, admin, screenshot, or GameTest scope.
+
 ## 1.0.0
 
 - Publishes Fabric and NeoForge builds for Minecraft 1.21.1, 26.1.2, and 26.2.

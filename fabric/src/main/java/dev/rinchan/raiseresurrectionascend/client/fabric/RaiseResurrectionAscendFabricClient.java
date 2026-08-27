@@ -4,6 +4,7 @@ import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
 import dev.rinchan.raiseresurrectionascend.client.RaiseResurrectionAscendClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -11,6 +12,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 public final class RaiseResurrectionAscendFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        RaiseResurrectionAscendClient.initialize(ClientPlayNetworking::send);
+        KeyBindingHelper.registerKeyBinding(RaiseResurrectionAscendClient.giveUpKey());
         ClientPlayNetworking.registerGlobalReceiver(
             RaiseResurrectionAscendStatePacket.TYPE,
             (packet, context) -> context.client().execute(() -> RaiseResurrectionAscendClient.applyState(packet))
