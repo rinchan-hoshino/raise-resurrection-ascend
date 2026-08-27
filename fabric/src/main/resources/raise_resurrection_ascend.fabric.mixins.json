@@ -1,10 +1,11 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.rinchan.raiseresurrectionascend.mixin",
+  "package": "dev.rinchan.raiseresurrectionascend.mixin.fabric",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "LivingEntityTotemInvoker"
+    "LivingEntityTotemGuardMixin",
+    "ServerPlayerPersistenceMixin"
   ],
   "injectors": {
     "defaultRequire": 1

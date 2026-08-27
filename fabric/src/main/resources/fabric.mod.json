@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "raise_resurrection_ascend",
+  "version": "${version}",
+  "name": "Raise & Resurrection & Ascend",
+  "description": "A server-authoritative downed state with damage vulnerability, healing recovery, and native Totem of Undying protection.",
+  "authors": ["RinChan"],
+  "license": "GPL-3.0-or-later",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.rinchan.raiseresurrectionascend.fabric.RaiseResurrectionAscendFabric"
+    ],
+    "client": [
+      "dev.rinchan.raiseresurrectionascend.client.fabric.RaiseResurrectionAscendFabricClient"
+    ]
+  },
+  "mixins": [
+    "raise_resurrection_ascend.mixins.json",
+    "raise_resurrection_ascend.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=25",
+    "fabric-api": ">=0.155.2"
+  }
+}

@@ -9,12 +9,15 @@ import org.junit.jupiter.api.Test;
 
 final class DownedPresentationContractTest {
     @Test
-    void crawlIsServerForcedAndHudShowsOnlyDynamicRecoveryThreshold() throws Exception {
+    void crawlIsMaintainedOnBothSidesAndHudShowsOnlyDynamicRecoveryThreshold() throws Exception {
         Path root = root();
         String lifecycle = Files.readString(root.resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java"));
         String client = Files.readString(root.resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend/client/RaiseResurrectionAscendClient.java"));
         String english = Files.readString(root.resolve("common/src/main/resources/assets/raise_resurrection_ascend/lang/en_us.json"));
-        assertTrue(lifecycle.contains("setForcedPose(Pose.SWIMMING)"));
+        assertTrue(lifecycle.contains("setPose(Pose.SWIMMING)"));
+        assertTrue(client.contains("setPose(Pose.SWIMMING)"));
+        assertFalse(lifecycle.contains("setForcedPose"));
+        assertFalse(client.contains("setForcedPose"));
         assertTrue(client.contains("packet.recoveryThreshold()"));
         assertTrue(client.contains("formatHealth(recoveryThreshold)"));
         assertFalse(client.contains("give_up"));

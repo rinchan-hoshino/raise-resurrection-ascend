@@ -23,8 +23,11 @@ final class TotemProtection {
         try {
             // A deliberate teammate rescue is not a repeat of the original damage. Use an eligible
             // neutral source while delegating every effect, hook, statistic, event and animation to vanilla.
-            triggered = ((LivingEntityTotemInvoker) recipient)
-                .raiseResurrectionAscend$invokeTotemDeathProtection(recipient.damageSources().generic());
+            triggered = RaiseResurrectionAscend.withSyntheticTotemRescue(
+                recipient,
+                () -> ((LivingEntityTotemInvoker) recipient)
+                    .raiseResurrectionAscend$invokeTotemDeathProtection(recipient.damageSources().generic())
+            );
         } finally {
             recipient.setItemInHand(InteractionHand.MAIN_HAND, recipientMainHand);
         }

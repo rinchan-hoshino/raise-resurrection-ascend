@@ -3,11 +3,11 @@ package dev.rinchan.raiseresurrectionascend;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record RaiseResurrectionAscendStatePacket(boolean downed, float recoveryThreshold) implements CustomPacketPayload {
     public static final Type<RaiseResurrectionAscendStatePacket> TYPE = new Type<>(
-        ResourceLocation.fromNamespaceAndPath(RaiseResurrectionAscend.MOD_ID, "state")
+        Identifier.fromNamespaceAndPath(RaiseResurrectionAscend.MOD_ID, "state")
     );
     public static final StreamCodec<RegistryFriendlyByteBuf, RaiseResurrectionAscendStatePacket> CODEC = new StreamCodec<>() {
         @Override

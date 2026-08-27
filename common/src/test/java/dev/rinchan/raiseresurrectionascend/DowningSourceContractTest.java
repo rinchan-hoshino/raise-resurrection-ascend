@@ -18,6 +18,9 @@ final class DowningSourceContractTest {
         assertFalse(lifecycle.contains("genericKill()"));
         assertTrue(snapshot.contains("RecordedMessageDamageSource"));
         assertTrue(snapshot.contains("return recordedMessage.copy()"));
+        assertTrue(snapshot.contains("super(type, direct, causing)"));
+        assertTrue(snapshot.contains("super(type, position)"));
+        assertFalse(snapshot.contains("super(type, direct, causing, position)"));
         assertFalse(snapshot.contains("genericKill()"));
     }
 
