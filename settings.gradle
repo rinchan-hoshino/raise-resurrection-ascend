@@ -11,5 +11,12 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
+def minimumGradleVersion = org.gradle.util.GradleVersion.version('9.5.0')
+if (org.gradle.util.GradleVersion.current() < minimumGradleVersion) {
+    throw new GradleException(
+        "Fabric Loom 1.17.20 requires Gradle 9.5.0 or newer; use this repository's ./gradlew wrapper."
+    )
+}
+
 rootProject.name = 'raise-resurrection-ascend'
 include 'fabric', 'neoforge'
