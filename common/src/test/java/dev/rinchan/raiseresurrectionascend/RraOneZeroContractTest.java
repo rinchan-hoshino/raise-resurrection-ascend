@@ -13,7 +13,7 @@ final class RraOneZeroContractTest {
     void finalDeathReentersNativeDamageAndTotemPipelineWithPersistedCause() throws Exception {
         String lifecycle = source("RaiseResurrectionAscend.java");
         String cause = source("DowningCauseSnapshot.java");
-        String adapter = source("neoforge/RaiseResurrectionAscendNeoForge.java");
+        String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String totem = source("TotemProtection.java");
 
         assertTrue(lifecycle.contains("player.hurt(downingSource, Float.MAX_VALUE)"));
@@ -32,7 +32,8 @@ final class RraOneZeroContractTest {
 
     @Test
     void networkIsRequiredVersionedS2cOnlyAndHudUsesServerThreshold() throws Exception {
-        String adapter = source("neoforge/RaiseResurrectionAscendNeoForge.java");
+        String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
+        String neoForgeClient = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/client/neoforge/RaiseResurrectionAscendNeoForgeClient.java");
         String packet = source("RaiseResurrectionAscendStatePacket.java");
         String client = source("client/RaiseResurrectionAscendClient.java");
 
@@ -43,7 +44,7 @@ final class RraOneZeroContractTest {
         assertTrue(adapter.contains("LOGGER.error"));
         assertTrue(packet.contains("float recoveryThreshold"));
         assertTrue(client.contains("packet.recoveryThreshold()"));
-        assertTrue(client.contains("ClientPlayerNetworkEvent.LoggingOut"));
+        assertTrue(neoForgeClient.contains("ClientPlayerNetworkEvent.LoggingOut"));
         assertFalse(client.contains("give_up"));
     }
 
@@ -79,6 +80,10 @@ final class RraOneZeroContractTest {
 
     private static String source(String relative) throws Exception {
         return Files.readString(root().resolve("common/src/main/java/dev/rinchan/raiseresurrectionascend").resolve(relative));
+    }
+
+    private static String loaderSource(String loader, String relative) throws Exception {
+        return Files.readString(root().resolve(loader).resolve("src/main/java").resolve(relative));
     }
 
     private static Path root() {

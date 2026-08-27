@@ -3,7 +3,7 @@ package dev.rinchan.raiseresurrectionascend;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 
@@ -13,11 +13,11 @@ public final class DeathMessageDelivery {
     }
 
     public static void broadcast(ServerPlayer subject, Component message) {
-        if (!subject.level().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES)) {
+        if (!subject.level().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES)) {
             return;
         }
 
-        PlayerList players = subject.server.getPlayerList();
+        PlayerList players = subject.level().getServer().getPlayerList();
         PlayerTeam team = subject.getTeam();
         if (team == null || team.getDeathMessageVisibility() == Team.Visibility.ALWAYS) {
             players.broadcastSystemMessage(message, false);
