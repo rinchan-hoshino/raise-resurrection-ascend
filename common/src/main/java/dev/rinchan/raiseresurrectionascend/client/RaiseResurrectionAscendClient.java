@@ -32,7 +32,8 @@ public final class RaiseResurrectionAscendClient {
 
     public static void renderHud(GuiGraphicsExtractor graphics) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (!downed || minecraft.player == null || minecraft.options.hideGui) {
+        // Modern HUD extraction is skipped by Minecraft when the entire GUI is hidden.
+        if (!downed || minecraft.player == null) {
             return;
         }
 
