@@ -13,7 +13,9 @@ final class DowningSourceContractTest {
         String lifecycle = source("RaiseResurrectionAscend.java");
         String snapshot = source("DowningCauseSnapshot.java");
         assertTrue(lifecycle.contains("DamageSource downingSource = state.cause.reconstruct(player)"));
-        assertTrue(lifecycle.contains("player.hurt(downingSource, Float.MAX_VALUE)"));
+        assertTrue(lifecycle.contains("player.hurt(downingSource, FINAL_DEATH_DAMAGE)"));
+        assertTrue(lifecycle.contains("private static final float FINAL_DEATH_DAMAGE = 1_000_000.0F;"));
+        assertFalse(lifecycle.contains("Float.MAX_VALUE"));
         assertFalse(lifecycle.contains("player.die("));
         assertFalse(lifecycle.contains("genericKill()"));
         assertTrue(snapshot.contains("RecordedMessageDamageSource"));
