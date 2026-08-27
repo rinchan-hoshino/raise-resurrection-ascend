@@ -31,21 +31,24 @@ final class RraOneZeroContractTest {
     }
 
     @Test
-    void networkIsRequiredVersionedS2cOnlyAndHudUsesServerThreshold() throws Exception {
+    void networkIsRequiredVersionedAndGiveUpPayloadCarriesOnlyPressedState() throws Exception {
         String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String neoForgeClient = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/client/neoforge/RaiseResurrectionAscendNeoForgeClient.java");
-        String packet = source("RaiseResurrectionAscendStatePacket.java");
+        String statePacket = source("RaiseResurrectionAscendStatePacket.java");
+        String giveUpPacket = source("RaiseResurrectionAscendGiveUpPacket.java");
         String client = source("client/RaiseResurrectionAscendClient.java");
 
-        assertTrue(adapter.contains("event.registrar(\"1.0.0\")"));
+        assertTrue(adapter.contains("event.registrar(\"1.0.1\")"));
         assertFalse(adapter.contains(".optional()"));
-        assertFalse(adapter.contains("playToServer"));
+        assertTrue(adapter.contains("playToServer"));
         assertFalse(adapter.contains("exceptionally("));
         assertTrue(adapter.contains("LOGGER.error"));
-        assertTrue(packet.contains("float recoveryThreshold"));
+        assertTrue(statePacket.contains("float recoveryThreshold"));
+        assertTrue(giveUpPacket.contains("boolean pressed"));
+        assertFalse(giveUpPacket.contains("clientTick"));
         assertTrue(client.contains("packet.recoveryThreshold()"));
         assertTrue(neoForgeClient.contains("ClientPlayerNetworkEvent.LoggingOut"));
-        assertFalse(client.contains("give_up"));
+        assertTrue(client.contains("give_up"));
     }
 
     @Test
@@ -56,8 +59,6 @@ final class RraOneZeroContractTest {
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/FriendDrinkPolicy.java",
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/FriendFeedingPolicy.java",
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscendConfig.java",
-            "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscendGiveUpPacket.java",
-            "common/src/main/java/dev/rinchan/raiseresurrectionascend/client/GiveUpHoldProgress.java",
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/client/ScreenshotClientHarness.java",
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/neoforge/ScreenshotServerHarness.java",
             "common/src/main/java/dev/rinchan/raiseresurrectionascend/gametest/TotemPriorityGameTests.java",

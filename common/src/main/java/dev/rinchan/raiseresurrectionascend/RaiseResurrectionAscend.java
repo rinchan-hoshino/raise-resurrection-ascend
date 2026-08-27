@@ -28,11 +28,13 @@ public final class RaiseResurrectionAscend {
     private static final float DOWNED_HEALTH = 1.0F;
     private static final float ABSORPTION_TOLERANCE = 0.001F;
     private static final int DOWNED_INVISIBILITY_TICKS = 20 * 3;
+    private static final int GIVE_UP_HOLD_TICKS = 40;
     private static final Identifier DOWNED_ABSORPTION_CAPACITY = Identifier.fromNamespaceAndPath(
         MOD_ID,
         "downed_absorption_capacity"
     );
     private static final Map<UUID, DownedState> DOWNED_PLAYERS = new HashMap<>();
+    private static final Map<UUID, GiveUpHoldState> GIVE_UP_STATES = new HashMap<>();
     private static final Map<UUID, Integer> SYNTHETIC_TOTEM_RESCUES = new HashMap<>();
     private static DownedStatePersistence persistence;
     private static DownedStateSynchronizer synchronizer;
@@ -64,6 +66,16 @@ public final class RaiseResurrectionAscend {
             || SYNTHETIC_TOTEM_RESCUES.getOrDefault(player.getUUID(), 0) > 0;
     }
 
+    public static void setGiveUpPressed(ServerPlayer player, boolean pressed) {
+        UUID playerId = player.getUUID();
+        if (!isDowned(player)) {
+            GIVE_UP_STATES.remove(playerId);
+            return;
+        }
+        GIVE_UP_STATES.computeIfAbsent(playerId, ignored -> new GiveUpHoldState(GIVE_UP_HOLD_TICKS))
+            .setPressed(pressed);
+    }
+
     static boolean withSyntheticTotemRescue(ServerPlayer player, BooleanSupplier invocation) {
         UUID playerId = player.getUUID();
         SYNTHETIC_TOTEM_RESCUES.merge(playerId, 1, Integer::sum);
@@ -90,6 +102,7 @@ public final class RaiseResurrectionAscend {
 
         DownedState state = new DownedState(cause);
         DOWNED_PLAYERS.put(player.getUUID(), state);
+        GIVE_UP_STATES.remove(player.getUUID());
         player.setHealth(DOWNED_HEALTH);
         ensureDownedAbsorptionCapacity(player);
         player.setAbsorptionAmount(DownedAbsorptionPolicy.initialAbsorption(
@@ -186,6 +199,10 @@ public final class RaiseResurrectionAscend {
                 clearDownedState(player, false);
                 continue;
             }
+            GiveUpHoldState giveUp = GIVE_UP_STATES.get(player.getUUID());
+            if (giveUp != null && giveUp.tick()) {
+                requestOriginalFinalDeath(player);
+            }
             if (state.finalDeath.phase() == FinalDeathStateMachine.Phase.REQUESTED) {
                 dispatchFinalDeath(player, state);
                 continue;
@@ -212,6 +229,7 @@ public final class RaiseResurrectionAscend {
         }
         persistDownedState(player, state);
         DOWNED_PLAYERS.remove(player.getUUID());
+        GIVE_UP_STATES.remove(player.getUUID());
         SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
         removeDownedAbsorptionCapacity(player);
     }
@@ -219,6 +237,7 @@ public final class RaiseResurrectionAscend {
     public static void restorePlayer(ServerPlayer player) {
         requirePlatformServices();
         DOWNED_PLAYERS.remove(player.getUUID());
+        GIVE_UP_STATES.remove(player.getUUID());
         SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
         DownedStatePersistence.LoadedDownedState persisted = persistence.load(player);
         DownedState state;
@@ -259,6 +278,7 @@ public final class RaiseResurrectionAscend {
     private static void abandonUnverifiableDownedState(ServerPlayer player, String reason) {
         LOGGER.error("Clearing unverifiable downed state for {}: {}", player.getGameProfile().name(), reason);
         DOWNED_PLAYERS.remove(player.getUUID());
+        GIVE_UP_STATES.remove(player.getUUID());
         SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
         persistence.clear(player);
         removeDownedAbsorptionCapacity(player);
@@ -304,6 +324,7 @@ public final class RaiseResurrectionAscend {
 
     private static void clearDownedState(ServerPlayer player, boolean preserveAbsorption) {
         DOWNED_PLAYERS.remove(player.getUUID());
+        GIVE_UP_STATES.remove(player.getUUID());
         SYNTHETIC_TOTEM_RESCUES.remove(player.getUUID());
         persistence.clear(player);
         removeDownedAbsorptionCapacity(player);

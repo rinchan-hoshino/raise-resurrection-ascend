@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Restored the Give Up key (default: `G`) with a two-second HUD progress bar.
+- Made give-up timing server-authoritative: the client sends only pressed/released state, while the server counts 40 consecutive ticks.
+- Routed completed give-up requests through the existing original-cause final-death state machine, preserving native Totem of Undying protection.
+
 ## 1.0.0
 
 - Redesigned the mod around a server-authoritative, damage-vulnerable downed state while retaining the absorption clock and crawl presentation.

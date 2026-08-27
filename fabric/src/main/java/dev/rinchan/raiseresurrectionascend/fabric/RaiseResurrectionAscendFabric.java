@@ -1,6 +1,7 @@
 package dev.rinchan.raiseresurrectionascend.fabric;
 
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
+import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpPacket;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -19,6 +20,14 @@ public final class RaiseResurrectionAscendFabric implements ModInitializer {
         PayloadTypeRegistry.clientboundPlay().register(
             RaiseResurrectionAscendStatePacket.TYPE,
             RaiseResurrectionAscendStatePacket.CODEC
+        );
+        PayloadTypeRegistry.serverboundPlay().register(
+            RaiseResurrectionAscendGiveUpPacket.TYPE,
+            RaiseResurrectionAscendGiveUpPacket.CODEC
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+            RaiseResurrectionAscendGiveUpPacket.TYPE,
+            (packet, context) -> RaiseResurrectionAscend.setGiveUpPressed(context.player(), packet.pressed())
         );
         RaiseResurrectionAscend.initialize(
             new FabricDownedStatePersistence(),
