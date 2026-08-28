@@ -21,7 +21,7 @@ Death and downed announcements respect vanilla `showDeathMessages` and team deat
 RRA has no compile-time or metadata dependency on other gameplay mods. For a broader co-op recovery setup, consider:
 
 - **Let Your Friend Eating** for ordinary friend-feeding interactions.
-- **[Let Your Friend Drink](https://github.com/rinchan-hoshino/let-your-friend-drink)** for native drink-item completion on the recipient (currently Minecraft 1.21.1 NeoForge only).
+- **[Let Your Friend Drink](https://github.com/rinchan-hoshino/let-your-friend-drink)** for native drink-item completion on the recipient (Minecraft 1.21.1, 26.1.2, and 26.2 on Fabric or NeoForge).
 - An **Always Eat / No Hunger** style mod so healing foods remain usable when the hunger bar would normally prevent eating.
 
 These are recommendations only and are not required by RRA.
