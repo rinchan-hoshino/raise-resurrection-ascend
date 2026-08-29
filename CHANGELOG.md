@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Align recovery with the visible health threshold and preserve the original downing cause through final-death presentation and persistence.
+
 ## 1.0.3
 
 - Runs NeoForge's downed-state `LivingDeathEvent` cancellation at `LOW`, before final-death observers at `LOWEST`; a canceled downing event can no longer create dog tags, increment kill counters, or trigger other final-death cleanup.
