@@ -2,16 +2,18 @@ package dev.rinchan.raiseresurrectionascend.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
+import dev.rinchan.raiseresurrectionascend.DownedRecoveryPolicy;
 import dev.rinchan.raiseresurrectionascend.GiveUpHoldState;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscend;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendGiveUpInputPacket;
 import dev.rinchan.raiseresurrectionascend.RaiseResurrectionAscendStatePacket;
-import java.util.Locale;
+import java.util.List;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Pose;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ public final class RaiseResurrectionAscendClient {
     private static GiveUpInputSender giveUpSender;
     private static boolean downed;
     private static float recoveryThreshold;
+    private static Component deathMessage = Component.empty();
     private static boolean reportedPressed;
     private static int localHeldTicks;
 
@@ -53,7 +56,9 @@ public final class RaiseResurrectionAscendClient {
     public static void applyState(RaiseResurrectionAscendStatePacket packet) {
         downed = packet.downed();
         recoveryThreshold = packet.recoveryThreshold();
+        deathMessage = packet.deathMessage().copy();
         if (!downed) {
+            deathMessage = Component.empty();
             reportedPressed = false;
             localHeldTicks = 0;
         }
@@ -87,31 +92,45 @@ public final class RaiseResurrectionAscendClient {
         }
 
         int centerX = graphics.guiWidth() / 2;
-        int centerY = graphics.guiHeight() / 2 + 32;
-        Component recovery = Component.translatable(
-            "hud.raise_resurrection_ascend.recovery",
-            formatHealth(recoveryThreshold)
-        );
+        int centerY = graphics.guiHeight() / 2 + 24;
+        Component cause = Component.translatable("hud.raise_resurrection_ascend.cause", deathMessage);
+        Component recovery = Component.translatable(DownedRecoveryPolicy.requiresFullHealth(recoveryThreshold)
+            ? "hud.raise_resurrection_ascend.recovery_full_hearts"
+            : "hud.raise_resurrection_ascend.recovery_ten_hearts");
         Component giveUp = Component.translatable(
             "hud.raise_resurrection_ascend.give_up",
             GIVE_UP_KEY.getTranslatedKeyMessage(),
             GiveUpHoldState.REQUIRED_TICKS / 20
         );
-        int width = Math.max(minecraft.font.width(recovery), minecraft.font.width(giveUp)) + 12;
-        graphics.fill(centerX - width / 2, centerY - 5, centerX + width / 2, centerY + 27, 0xA0000000);
-        graphics.centeredText(minecraft.font, recovery, centerX, centerY, 0xFFFFFF);
-        graphics.centeredText(minecraft.font, giveUp, centerX, centerY + 12, 0xFFB0B0);
+        int maxLineWidth = Math.max(80, Math.min(320, graphics.guiWidth() - 24));
+        List<FormattedCharSequence> causeLines = minecraft.font.split(cause, maxLineWidth);
+        int causeLineCount = Math.min(2, causeLines.size());
+        int width = Math.max(minecraft.font.width(recovery), minecraft.font.width(giveUp));
+        for (int index = 0; index < causeLineCount; index++) {
+            width = Math.max(width, minecraft.font.width(causeLines.get(index)));
+        }
+        width += 12;
+        int recoveryY = centerY + causeLineCount * 12;
+        int giveUpY = recoveryY + 12;
+        int barY = giveUpY + 11;
+        graphics.fill(centerX - width / 2, centerY - 5, centerX + width / 2, barY + 4, 0xA0000000);
+        for (int index = 0; index < causeLineCount; index++) {
+            graphics.centeredText(minecraft.font, causeLines.get(index), centerX, centerY + index * 12, 0xFF8080);
+        }
+        graphics.centeredText(minecraft.font, recovery, centerX, recoveryY, 0xFFFFFF);
+        graphics.centeredText(minecraft.font, giveUp, centerX, giveUpY, 0xFFB0B0);
         if (localHeldTicks > 0) {
             int barWidth = Math.max(1, width - 12);
             int filled = Math.round(barWidth * (localHeldTicks / (float) GiveUpHoldState.REQUIRED_TICKS));
-            graphics.fill(centerX - barWidth / 2, centerY + 23, centerX + barWidth / 2, centerY + 25, 0xFF303030);
-            graphics.fill(centerX - barWidth / 2, centerY + 23, centerX - barWidth / 2 + filled, centerY + 25, 0xFFE05050);
+            graphics.fill(centerX - barWidth / 2, barY, centerX + barWidth / 2, barY + 2, 0xFF303030);
+            graphics.fill(centerX - barWidth / 2, barY, centerX - barWidth / 2 + filled, barY + 2, 0xFFE05050);
         }
     }
 
     public static void resetState() {
         downed = false;
         recoveryThreshold = 0.0F;
+        deathMessage = Component.empty();
         reportedPressed = false;
         localHeldTicks = 0;
     }
@@ -127,13 +146,6 @@ public final class RaiseResurrectionAscendClient {
             LOGGER.error("Failed to send give-up input transition", exception);
             throw exception;
         }
-    }
-
-    private static String formatHealth(float health) {
-        if (health == Math.rint(health)) {
-            return Integer.toString(Math.round(health));
-        }
-        return String.format(Locale.ROOT, "%.1f", health);
     }
 
     private static void applyLocalPose() {

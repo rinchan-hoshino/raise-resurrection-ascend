@@ -8,7 +8,7 @@ A Fabric and NeoForge mod for Minecraft 26.1.2 that replaces a player's first le
 - Otherwise, lethal damage downs the player at 1 health, starts the existing absorption clock, and forces the crawling presentation.
 - Further damage consumes that absorption clock. When the clock expires or follow-up damage finishes it, the original downing source re-enters Minecraft's native damage and death-protection pipeline.
 - A held Totem of Undying can therefore also protect the final death attempt.
-- Healing revives the player at `min(max health, 20)` health. The HUD displays that current server-authoritative threshold.
+- Healing revives a normal player when Minecraft's visible health bar reaches ten hearts. Players whose maximum health is below ten hearts must refill every heart instead. The HUD shows the recorded fatal blow and this heart-based recovery condition.
 - Holding **G** for 40 server ticks gives up. The client sends only key down/up transitions; the server owns the timer and resolves the resulting death through the original downing source and native totem pipeline.
 - Another player can right-click a downed player while holding a vanilla Totem of Undying. One totem is consumed unless the helper is in Creative mode, and the recipient receives the native totem result, effects, advancement/stat trigger, game event, and animation.
 
