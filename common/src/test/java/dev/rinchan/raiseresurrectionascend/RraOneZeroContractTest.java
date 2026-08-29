@@ -40,7 +40,7 @@ final class RraOneZeroContractTest {
         String giveUpPacket = source("RaiseResurrectionAscendGiveUpPacket.java");
         String client = source("client/RaiseResurrectionAscendClient.java");
 
-        assertTrue(adapter.contains("event.registrar(\"1.0.1\")"));
+        assertTrue(adapter.contains("event.registrar(\"1.0.2\")"));
         assertFalse(adapter.contains(".optional()"));
         assertTrue(adapter.contains("playToServer"));
         assertFalse(adapter.contains("exceptionally("));

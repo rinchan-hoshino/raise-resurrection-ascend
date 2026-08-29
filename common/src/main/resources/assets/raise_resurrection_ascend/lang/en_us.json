@@ -1,7 +1,9 @@
 {
   "message.raise_resurrection_ascend.downed_other": "%s was downed!",
-  "hud.raise_resurrection_ascend.recovery": "Heal to %s health to recover",
-  "hud.raise_resurrection_ascend.give_up": "Hold G to give up",
+  "hud.raise_resurrection_ascend.cause": "Fatal blow: %s",
+  "hud.raise_resurrection_ascend.recovery_ten_hearts": "Refill ten hearts to stand back up",
+  "hud.raise_resurrection_ascend.recovery_full_hearts": "Refill every heart to stand back up",
+  "hud.raise_resurrection_ascend.give_up": "Hold %s for %s seconds to give up",
   "key.raise_resurrection_ascend.give_up": "Give Up",
-  "key.category.raise_resurrection_ascend.main": "Raise & Resurrection & Ascend"
+  "key.category.raise_resurrection_ascend.main": "Raise, Resurrection & Ascend"
 }

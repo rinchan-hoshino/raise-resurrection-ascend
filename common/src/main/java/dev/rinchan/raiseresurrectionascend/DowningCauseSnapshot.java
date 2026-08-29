@@ -171,6 +171,10 @@ final class DowningCauseSnapshot {
         return tag;
     }
 
+    Component recordedDeathMessage(ServerPlayer player) {
+        return deserializeComponent(player, deathMessageJson).copy();
+    }
+
     DamageSource reconstruct(ServerPlayer player) {
         Registry<DamageType> damageTypes = player.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
         Identifier identifier = Identifier.tryParse(damageTypeId);
@@ -180,8 +184,13 @@ final class DowningCauseSnapshot {
         Holder<DamageType> type = damageTypes.getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, identifier));
         Entity direct = resolve(player, directEntity);
         Entity causing = resolve(player, causingEntity);
-        Component recordedMessage = deserializeComponent(player, deathMessageJson);
-        return RecordedMessageDamageSource.create(type, direct, causing, sourcePosition, recordedMessage);
+        return RecordedMessageDamageSource.create(
+            type,
+            direct,
+            causing,
+            sourcePosition,
+            recordedDeathMessage(player)
+        );
     }
 
     private static String serializeComponent(ServerPlayer player, Component component) {

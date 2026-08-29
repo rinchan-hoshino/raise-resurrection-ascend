@@ -8,8 +8,8 @@ A Fabric and NeoForge mod for Minecraft 26.2 that replaces a player's first leth
 - Otherwise, lethal damage downs the player at 1 health, starts the existing absorption clock, and forces the crawling presentation.
 - Further damage consumes that absorption clock. When the clock expires or follow-up damage finishes it, the original downing source re-enters Minecraft's native damage and death-protection pipeline.
 - A held Totem of Undying can therefore also protect the final death attempt.
-- Healing revives the player at `min(max health, 20)` health. The HUD displays that current server-authoritative threshold.
-- Holding the Give Up key (default: `G`) for 40 consecutive server ticks requests final death. The client sends only pressed/released state; the server owns the timer and resolves the original downing source through Minecraft's native damage, death, and Totem of Undying pipeline.
+- Healing revives a normal player when Minecraft's visible health bar reaches ten hearts. Players whose maximum health is below ten hearts must refill every heart instead. The HUD shows the recorded fatal blow and this heart-based recovery condition.
+- Holding **G** for 40 server ticks gives up. The client sends only key down/up transitions; the server owns the timer and resolves the resulting death through the original downing source and native totem pipeline.
 - Another player can right-click a downed player while holding a vanilla Totem of Undying. One totem is consumed unless the helper is in Creative mode, and the recipient receives the native totem result, effects, advancement/stat trigger, game event, and animation.
 
 The original downing cause survives reconnects and server restarts as a structured snapshot: damage type, entity UUIDs and dimensions, source position, and the immutable localized death message. Final deaths keep that original cause even when referenced entities are no longer loaded. A legacy or corrupted downed record with no verifiable original cause is safely cleared instead of inventing a different death source.
