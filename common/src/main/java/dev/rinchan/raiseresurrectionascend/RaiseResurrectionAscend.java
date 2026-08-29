@@ -342,9 +342,16 @@ public final class RaiseResurrectionAscend {
         if (state != null) {
             state.lastSyncedThreshold = threshold;
         }
+        Component deathMessage = state == null
+            ? Component.empty()
+            : state.cause.recordedDeathMessage(player);
         requirePlatformServices();
         try {
-            synchronizer.send(player, new RaiseResurrectionAscendStatePacket(state != null, threshold));
+            synchronizer.send(player, new RaiseResurrectionAscendStatePacket(
+                state != null,
+                threshold,
+                deathMessage
+            ));
         } catch (RuntimeException exception) {
             LOGGER.error("Failed to synchronize downed state to {}", player.getGameProfile().getName(), exception);
             throw exception;

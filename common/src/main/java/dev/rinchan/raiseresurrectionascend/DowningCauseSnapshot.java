@@ -136,6 +136,14 @@ final class DowningCauseSnapshot {
         return tag;
     }
 
+    Component recordedDeathMessage(ServerPlayer player) {
+        Component recordedMessage = Component.Serializer.fromJson(deathMessageJson, player.registryAccess());
+        if (recordedMessage == null) {
+            throw new IllegalStateException("Validated downing death message became empty");
+        }
+        return recordedMessage.copy();
+    }
+
     DamageSource reconstruct(ServerPlayer player) {
         Registry<DamageType> damageTypes = player.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
         ResourceLocation location = ResourceLocation.tryParse(damageTypeId);
@@ -145,11 +153,13 @@ final class DowningCauseSnapshot {
         Holder<DamageType> type = damageTypes.getHolderOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, location));
         Entity direct = resolve(player, directEntity);
         Entity causing = resolve(player, causingEntity);
-        Component recordedMessage = Component.Serializer.fromJson(deathMessageJson, player.registryAccess());
-        if (recordedMessage == null) {
-            throw new IllegalStateException("Validated downing death message became empty");
-        }
-        return RecordedMessageDamageSource.create(type, direct, causing, sourcePosition, recordedMessage);
+        return RecordedMessageDamageSource.create(
+            type,
+            direct,
+            causing,
+            sourcePosition,
+            recordedDeathMessage(player)
+        );
     }
 
     @Nullable

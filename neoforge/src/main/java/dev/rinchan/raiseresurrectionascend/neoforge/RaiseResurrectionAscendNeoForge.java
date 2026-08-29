@@ -50,7 +50,7 @@ public class RaiseResurrectionAscendNeoForge {
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1.0.1");
+        PayloadRegistrar registrar = event.registrar("1.0.2");
         registrar.playToClient(
             RaiseResurrectionAscendStatePacket.TYPE,
             RaiseResurrectionAscendStatePacket.CODEC,
