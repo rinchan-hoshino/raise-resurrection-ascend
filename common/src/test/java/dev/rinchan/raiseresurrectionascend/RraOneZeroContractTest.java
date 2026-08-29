@@ -10,26 +10,31 @@ import org.junit.jupiter.api.Test;
 
 final class RraOneZeroContractTest {
     @Test
-    void finalDeathReentersNativeDamageAndTotemPipelineWithPersistedCause() throws Exception {
+    void finalDeathUsesNativeTotemThenDirectDeathWithThePersistedCause() throws Exception {
         String lifecycle = source("RaiseResurrectionAscend.java");
         String cause = source("DowningCauseSnapshot.java");
         String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String totem = source("TotemProtection.java");
+        String deathAccessor = source("mixin/LivingEntityDeathAccessor.java");
 
-        assertTrue(lifecycle.contains("player.hurt(downingSource, FINAL_DEATH_DAMAGE)"));
-        assertTrue(lifecycle.contains("private static final float FINAL_DEATH_DAMAGE = 1_000_000.0F;"));
+        assertTrue(lifecycle.contains("raiseResurrectionAscend$invokeTotemDeathProtection(downingSource)"));
+        assertTrue(lifecycle.contains("player.die(downingSource)"));
+        assertTrue(lifecycle.contains("raiseResurrectionAscend$isDead()"));
+        assertFalse(lifecycle.contains("player.hurt("));
+        assertFalse(lifecycle.contains("FINAL_DEATH_DAMAGE"));
         assertFalse(lifecycle.contains("Float.MAX_VALUE"));
-        assertFalse(lifecycle.contains("player.die("));
         assertTrue(cause.contains("damage_type"));
         assertTrue(cause.contains("direct_entity"));
         assertTrue(cause.contains("causing_entity"));
         assertTrue(cause.contains("source_position"));
         assertTrue(cause.contains("death_message"));
         assertFalse(lifecycle.contains("genericKill()"));
-        assertTrue(adapter.contains("LivingUseTotemEvent"));
+        assertTrue(adapter.contains("LivingDeathEvent"));
+        assertFalse(adapter.contains("LivingUseTotemEvent"));
         assertTrue(adapter.contains("PlayerInteractEvent.EntityInteract"));
         assertTrue(adapter.contains("Items.TOTEM_OF_UNDYING"));
         assertTrue(totem.contains("raiseResurrectionAscend$invokeTotemDeathProtection"));
+        assertTrue(deathAccessor.contains("@Accessor(\"dead\")"));
     }
 
     @Test

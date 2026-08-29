@@ -17,7 +17,6 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingUseTotemEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -38,7 +37,6 @@ public class RaiseResurrectionAscendNeoForge {
         modBus.addListener(this::registerPayloads);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePre);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingDamagePost);
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onLivingUseTotem);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOW, this::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
@@ -88,12 +86,6 @@ public class RaiseResurrectionAscendNeoForge {
         }
     }
 
-    private void onLivingUseTotem(LivingUseTotemEvent event) {
-        if (!event.isCanceled() && event.getEntity() instanceof ServerPlayer player) {
-            RaiseResurrectionAscend.observeNativeTotemTrigger(player);
-        }
-    }
-
     private void onLivingDeath(LivingDeathEvent event) {
         if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
@@ -105,7 +97,6 @@ public class RaiseResurrectionAscendNeoForge {
             return;
         }
         if (RaiseResurrectionAscend.isDispatchingFinalDeath(player)) {
-            RaiseResurrectionAscend.observeFinalDeath(player);
             return;
         }
         event.setCanceled(true);

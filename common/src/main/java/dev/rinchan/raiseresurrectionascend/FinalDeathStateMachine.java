@@ -15,8 +15,6 @@ final class FinalDeathStateMachine {
     }
 
     private Phase phase = Phase.DOWNED;
-    private boolean totemObserved;
-    private boolean deathObserved;
 
     Phase phase() {
         return phase;
@@ -35,32 +33,18 @@ final class FinalDeathStateMachine {
             return false;
         }
         phase = Phase.DISPATCHING;
-        totemObserved = false;
-        deathObserved = false;
         return true;
     }
 
-    void observeTotemTrigger() {
-        if (phase == Phase.DISPATCHING) {
-            totemObserved = true;
-        }
-    }
-
-    void observeFinalDeath() {
-        if (phase == Phase.DISPATCHING) {
-            deathObserved = true;
-        }
-    }
-
-    Outcome completeDispatch(boolean playerAlive) {
+    Outcome completeDispatch(boolean totemTriggered, boolean deathCompleted) {
         if (phase != Phase.DISPATCHING) {
             return Outcome.REMAIN_DOWNED;
         }
         phase = Phase.DOWNED;
-        if (deathObserved) {
+        if (deathCompleted) {
             return Outcome.FINAL_DEATH;
         }
-        if (totemObserved && playerAlive) {
+        if (totemTriggered) {
             return Outcome.TOTEM_TRIGGERED;
         }
         return Outcome.REMAIN_DOWNED;

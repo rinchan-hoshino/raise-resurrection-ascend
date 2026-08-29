@@ -44,7 +44,6 @@ public final class RaiseResurrectionAscendFabric implements ModInitializer {
                 return !RaiseResurrectionAscend.enterDowned(player, source);
             }
             if (RaiseResurrectionAscend.isDispatchingFinalDeath(player)) {
-                RaiseResurrectionAscend.observeFinalDeath(player);
                 return true;
             }
             RaiseResurrectionAscend.requestOriginalFinalDeath(player);

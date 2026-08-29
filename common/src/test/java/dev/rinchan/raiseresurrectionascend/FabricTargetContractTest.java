@@ -46,7 +46,8 @@ final class FabricTargetContractTest {
         assertTrue(persistence.contains("DownedStatePersistence.STORAGE_KEY"));
         assertTrue(guard.contains("@At(\"HEAD\")"));
         assertTrue(guard.contains("permitsNativeTotemCheck"));
-        assertTrue(guard.contains("observeNativeTotemTrigger"));
+        assertFalse(guard.contains("observeNativeTotemTrigger"));
+        assertFalse(guard.contains("@At(\"RETURN\")"));
         assertTrue(totem.contains("withSyntheticTotemRescue"));
         assertTrue(totem.contains("finally"));
         assertTrue(totem.contains("held.shrink(1)"));

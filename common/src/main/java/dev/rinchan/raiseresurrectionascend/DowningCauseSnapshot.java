@@ -13,8 +13,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
@@ -155,7 +153,7 @@ final class DowningCauseSnapshot {
         Holder<DamageType> type = damageTypes.getHolderOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, location));
         Entity direct = resolve(player, directEntity);
         Entity causing = resolve(player, causingEntity);
-        return FinalDeathDamageSource.create(
+        return RecordedMessageDamageSource.create(
             type,
             direct,
             causing,
@@ -211,10 +209,10 @@ final class DowningCauseSnapshot {
         }
     }
 
-    private static final class FinalDeathDamageSource extends DamageSource {
+    private static final class RecordedMessageDamageSource extends DamageSource {
         private final Component recordedMessage;
 
-        private FinalDeathDamageSource(
+        private RecordedMessageDamageSource(
                 Holder<DamageType> type,
                 @Nullable Entity direct,
                 @Nullable Entity causing,
@@ -223,7 +221,7 @@ final class DowningCauseSnapshot {
             this.recordedMessage = recordedMessage.copy();
         }
 
-        private FinalDeathDamageSource(
+        private RecordedMessageDamageSource(
                 Holder<DamageType> type,
                 Vec3 position,
                 Component recordedMessage) {
@@ -231,7 +229,7 @@ final class DowningCauseSnapshot {
             this.recordedMessage = recordedMessage.copy();
         }
 
-        private FinalDeathDamageSource(Holder<DamageType> type, Component recordedMessage) {
+        private RecordedMessageDamageSource(Holder<DamageType> type, Component recordedMessage) {
             super(type);
             this.recordedMessage = recordedMessage.copy();
         }
@@ -243,17 +241,12 @@ final class DowningCauseSnapshot {
                 @Nullable Vec3 position,
                 Component recordedMessage) {
             if (direct != null || causing != null) {
-                return new FinalDeathDamageSource(type, direct, causing, recordedMessage);
+                return new RecordedMessageDamageSource(type, direct, causing, recordedMessage);
             }
             if (position != null) {
-                return new FinalDeathDamageSource(type, position, recordedMessage);
+                return new RecordedMessageDamageSource(type, position, recordedMessage);
             }
-            return new FinalDeathDamageSource(type, recordedMessage);
-        }
-
-        @Override
-        public boolean is(TagKey<DamageType> tag) {
-            return DamageTypeTags.BYPASSES_ARMOR.equals(tag) || super.is(tag);
+            return new RecordedMessageDamageSource(type, recordedMessage);
         }
 
         @Override

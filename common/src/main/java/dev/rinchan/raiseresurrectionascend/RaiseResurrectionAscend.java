@@ -1,6 +1,8 @@
 package dev.rinchan.raiseresurrectionascend;
 
 import com.mojang.logging.LogUtils;
+import dev.rinchan.raiseresurrectionascend.mixin.LivingEntityDeathAccessor;
+import dev.rinchan.raiseresurrectionascend.mixin.LivingEntityTotemInvoker;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +29,6 @@ public final class RaiseResurrectionAscend {
     private static final String PERSISTED_ABSORPTION = "remaining_absorption";
     private static final float DOWNED_HEALTH = 1.0F;
     private static final float ABSORPTION_TOLERANCE = 0.001F;
-    private static final float FINAL_DEATH_DAMAGE = 1_000_000.0F;
     private static final int DOWNED_INVISIBILITY_TICKS = 20 * 3;
     private static final ResourceLocation DOWNED_ABSORPTION_CAPACITY = ResourceLocation.fromNamespaceAndPath(
         MOD_ID,
@@ -131,22 +132,6 @@ public final class RaiseResurrectionAscend {
         if (player.getAbsorptionAmount() <= ABSORPTION_TOLERANCE) {
             state.finalDeath.requestFinalDeath();
             persistDownedState(player, state);
-        }
-    }
-
-    /** Called by the lowest-priority, non-canceled native totem hook. */
-    public static void observeNativeTotemTrigger(ServerPlayer player) {
-        DownedState state = DOWNED_PLAYERS.get(player.getUUID());
-        if (state != null) {
-            state.finalDeath.observeTotemTrigger();
-        }
-    }
-
-    /** Called by the lowest-priority, non-canceled native death event. */
-    public static void observeFinalDeath(ServerPlayer player) {
-        DownedState state = DOWNED_PLAYERS.get(player.getUUID());
-        if (state != null) {
-            state.finalDeath.observeFinalDeath();
         }
     }
 
@@ -284,14 +269,19 @@ public final class RaiseResurrectionAscend {
             return;
         }
         DamageSource downingSource = state.cause.reconstruct(player);
+        boolean totemTriggered = false;
+        boolean deathCompleted = false;
         try {
-            // The accepted finishing hit just refreshed hurt invulnerability; this dispatch is its death phase,
-            // not a second hit that should be discarded by that cooldown.
-            player.invulnerableTime = 0;
-            player.hurt(downingSource, FINAL_DEATH_DAMAGE);
+            player.setHealth(0.0F);
+            totemTriggered = ((LivingEntityTotemInvoker) player)
+                .raiseResurrectionAscend$invokeTotemDeathProtection(downingSource);
+            if (!totemTriggered) {
+                player.die(downingSource);
+                deathCompleted = ((LivingEntityDeathAccessor) player).raiseResurrectionAscend$isDead();
+            }
         } catch (RuntimeException exception) {
             LOGGER.error("Original-cause final-death dispatch failed for {}", player.getGameProfile().getName(), exception);
-            state.finalDeath.completeDispatch(player.getHealth() > 0.0F);
+            state.finalDeath.completeDispatch(false, false);
             if (player.getHealth() <= 0.0F) {
                 player.setHealth(DOWNED_HEALTH);
             }
@@ -299,7 +289,7 @@ public final class RaiseResurrectionAscend {
             throw exception;
         }
 
-        FinalDeathStateMachine.Outcome outcome = state.finalDeath.completeDispatch(player.getHealth() > 0.0F);
+        FinalDeathStateMachine.Outcome outcome = state.finalDeath.completeDispatch(totemTriggered, deathCompleted);
         if (outcome == FinalDeathStateMachine.Outcome.FINAL_DEATH) {
             clearDownedState(player, false);
         } else if (outcome == FinalDeathStateMachine.Outcome.TOTEM_TRIGGERED) {

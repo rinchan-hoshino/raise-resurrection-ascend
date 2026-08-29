@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test;
 
 final class PublishedVersionContractTest {
     @Test
-    void candidateVersionIsOneZeroFive() throws Exception {
+    void candidateVersionIsOneZeroSix() throws Exception {
         Properties properties = new Properties();
         try (var reader = Files.newBufferedReader(root().resolve("gradle.properties"))) {
             properties.load(reader);
         }
-        assertEquals("1.0.5", properties.getProperty("mod_version"));
+        assertEquals("1.0.6", properties.getProperty("mod_version"));
     }
 
     private static Path root() {

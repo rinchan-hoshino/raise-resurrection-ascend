@@ -4,6 +4,7 @@
   "package": "dev.rinchan.raiseresurrectionascend.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "LivingEntityDeathAccessor",
     "LivingEntityTotemInvoker"
   ],
   "injectors": {

@@ -20,13 +20,4 @@ abstract class LivingEntityTotemGuardMixin {
             callback.setReturnValue(false);
         }
     }
-
-    @Inject(method = "checkTotemDeathProtection", at = @At("RETURN"))
-    private void raiseResurrectionAscend$observeTotem(
-            DamageSource source,
-            CallbackInfoReturnable<Boolean> callback) {
-        if (callback.getReturnValueZ() && (Object) this instanceof ServerPlayer player) {
-            RaiseResurrectionAscend.observeNativeTotemTrigger(player);
-        }
-    }
 }

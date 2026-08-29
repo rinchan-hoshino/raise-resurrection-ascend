@@ -10,27 +10,22 @@ import org.junit.jupiter.api.Test;
 
 final class NeoForgeDeathPriorityContractTest {
     @Test
-    void downingPrecedesLowestPriorityFinalDeathObservers() throws Exception {
+    void downingOwnsTheLowPriorityEventWhileDispatchResultComesFromEntityState() throws Exception {
         String adapter = Files.readString(root().resolve(
             "neoforge/src/main/java/dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java"
         ));
+        String lifecycle = Files.readString(root().resolve(
+            "common/src/main/java/dev/rinchan/raiseresurrectionascend/RaiseResurrectionAscend.java"
+        ));
 
-        assertTrue(adapter.contains(
-            "addListener(EventPriority.LOW, this::onLivingDeath)"
-        ));
-        assertFalse(adapter.contains(
-            "addListener(EventPriority.LOWEST, this::onLivingDeath)"
-        ));
-        assertEquals(3, occurrences(adapter, "addListener(EventPriority.LOWEST"));
-        assertTrue(adapter.contains(
-            "addListener(EventPriority.LOWEST, this::onLivingDamagePre)"
-        ));
-        assertTrue(adapter.contains(
-            "addListener(EventPriority.LOWEST, this::onLivingDamagePost)"
-        ));
-        assertTrue(adapter.contains(
-            "addListener(EventPriority.LOWEST, this::onLivingUseTotem)"
-        ));
+        assertTrue(adapter.contains("addListener(EventPriority.LOW, this::onLivingDeath)"));
+        assertFalse(adapter.contains("addListener(EventPriority.LOWEST, this::onLivingDeath)"));
+        assertEquals(2, occurrences(adapter, "addListener(EventPriority.LOWEST"));
+        assertTrue(adapter.contains("addListener(EventPriority.LOWEST, this::onLivingDamagePre)"));
+        assertTrue(adapter.contains("addListener(EventPriority.LOWEST, this::onLivingDamagePost)"));
+        assertFalse(adapter.contains("LivingUseTotemEvent"));
+        assertFalse(adapter.contains("observeFinalDeath"));
+        assertTrue(lifecycle.contains("raiseResurrectionAscend$isDead()"));
     }
 
     private static int occurrences(String text, String needle) {

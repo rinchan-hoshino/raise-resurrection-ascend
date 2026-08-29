@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.6
+
+- Replaced the synthetic million-damage final-death hit with the native totem check followed by direct death using the recorded source.
+- Final death no longer emits fake hurt events, damage statistics, knockback, sounds, or equipment wear.
+- Final-death completion now reads Minecraft's actual `dead` state after all loader death callbacks, so a canceled death remains downed and can retry.
+
 ## 1.0.5
 
 - Preserve the recorded final-death cause, native totem check and death pipeline while making the synthetic force-kill bypass armor, so its one-million-point dispatch no longer destroys equipped armor durability.
