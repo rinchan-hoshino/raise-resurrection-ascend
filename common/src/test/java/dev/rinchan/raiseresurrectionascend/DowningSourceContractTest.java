@@ -18,7 +18,8 @@ final class DowningSourceContractTest {
         assertFalse(lifecycle.contains("Float.MAX_VALUE"));
         assertFalse(lifecycle.contains("player.die("));
         assertFalse(lifecycle.contains("genericKill()"));
-        assertTrue(snapshot.contains("RecordedMessageDamageSource"));
+        assertTrue(snapshot.contains("FinalDeathDamageSource"));
+        assertTrue(snapshot.contains("DamageTypeTags.BYPASSES_ARMOR.equals(tag) || super.is(tag)"));
         assertTrue(snapshot.contains("return recordedMessage.copy()"));
         assertTrue(snapshot.contains("super(type, direct, causing)"));
         assertTrue(snapshot.contains("super(type, position)"));

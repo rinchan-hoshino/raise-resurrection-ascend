@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- Preserve the recorded final-death cause, native totem check and death pipeline while making the synthetic force-kill bypass armor, so its one-million-point dispatch no longer destroys equipped armor durability.
+
 ## 1.0.4
 
 - Align recovery with the visible health threshold and preserve the original downing cause through final-death presentation and persistence.
