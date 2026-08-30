@@ -7,6 +7,9 @@
     "LivingEntityTotemInvoker",
     "ServerPlayerDeathCompletionMixin"
   ],
+  "client": [
+    "MissingEntityRendererGuardMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
