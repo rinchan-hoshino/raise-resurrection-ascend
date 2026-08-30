@@ -12,13 +12,13 @@ final class FinalDeathDispatchContractTest {
     void finalDeathUsesNativeTotemThenDirectDeathWithoutSyntheticDamage() throws Exception {
         String lifecycle = source("RaiseResurrectionAscend.java");
         String snapshot = source("DowningCauseSnapshot.java");
-        String accessor = source("mixin/LivingEntityDeathAccessor.java");
+        String completionMixin = source("mixin/ServerPlayerDeathCompletionMixin.java");
         String mixins = Files.readString(root().resolve("common/src/main/resources/raise_resurrection_ascend.mixins.json"));
 
         assertTrue(lifecycle.contains("player.setHealth(0.0F)"));
         assertTrue(lifecycle.contains("raiseResurrectionAscend$invokeTotemDeathProtection(downingSource)"));
         assertTrue(lifecycle.contains("player.die(downingSource)"));
-        assertTrue(lifecycle.contains("raiseResurrectionAscend$isDead()"));
+        assertTrue(lifecycle.contains("deathCompleted = state.nativeDeathCompletion.completed()"));
         assertTrue(lifecycle.contains("completeDispatch(totemTriggered, deathCompleted)"));
         assertFalse(lifecycle.contains("player.hurt("));
         assertFalse(lifecycle.contains("FINAL_DEATH_DAMAGE"));
@@ -29,8 +29,9 @@ final class FinalDeathDispatchContractTest {
         assertFalse(snapshot.contains("FinalDeathDamageSource"));
         assertFalse(snapshot.contains("DamageTypeTags"));
         assertFalse(snapshot.contains("BYPASSES_ARMOR"));
-        assertTrue(accessor.contains("@Accessor(\"dead\")"));
-        assertTrue(mixins.contains("LivingEntityDeathAccessor"));
+        assertTrue(completionMixin.contains("@Inject(method = \"die\", at = @At(\"TAIL\"))"));
+        assertTrue(mixins.contains("ServerPlayerDeathCompletionMixin"));
+        assertFalse(mixins.contains("LivingEntityDeathAccessor"));
     }
 
     private static String source(String file) throws Exception {

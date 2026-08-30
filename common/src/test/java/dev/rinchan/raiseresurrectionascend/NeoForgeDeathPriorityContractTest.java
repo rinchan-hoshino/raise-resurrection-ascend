@@ -25,7 +25,7 @@ final class NeoForgeDeathPriorityContractTest {
         assertTrue(adapter.contains("addListener(EventPriority.LOWEST, this::onLivingDamagePost)"));
         assertFalse(adapter.contains("LivingUseTotemEvent"));
         assertFalse(adapter.contains("observeFinalDeath"));
-        assertTrue(lifecycle.contains("raiseResurrectionAscend$isDead()"));
+        assertTrue(lifecycle.contains("deathCompleted = state.nativeDeathCompletion.completed()"));
     }
 
     private static int occurrences(String text, String needle) {

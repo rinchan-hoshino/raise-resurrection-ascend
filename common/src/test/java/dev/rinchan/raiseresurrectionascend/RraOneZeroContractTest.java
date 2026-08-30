@@ -15,11 +15,11 @@ final class RraOneZeroContractTest {
         String cause = source("DowningCauseSnapshot.java");
         String adapter = loaderSource("neoforge", "dev/rinchan/raiseresurrectionascend/neoforge/RaiseResurrectionAscendNeoForge.java");
         String totem = source("TotemProtection.java");
-        String deathAccessor = source("mixin/LivingEntityDeathAccessor.java");
+        String completionMixin = source("mixin/ServerPlayerDeathCompletionMixin.java");
 
         assertTrue(lifecycle.contains("raiseResurrectionAscend$invokeTotemDeathProtection(downingSource)"));
         assertTrue(lifecycle.contains("player.die(downingSource)"));
-        assertTrue(lifecycle.contains("raiseResurrectionAscend$isDead()"));
+        assertTrue(lifecycle.contains("deathCompleted = state.nativeDeathCompletion.completed()"));
         assertFalse(lifecycle.contains("player.hurt("));
         assertFalse(lifecycle.contains("FINAL_DEATH_DAMAGE"));
         assertFalse(lifecycle.contains("Float.MAX_VALUE"));
@@ -34,7 +34,7 @@ final class RraOneZeroContractTest {
         assertTrue(adapter.contains("PlayerInteractEvent.EntityInteract"));
         assertTrue(adapter.contains("Items.TOTEM_OF_UNDYING"));
         assertTrue(totem.contains("raiseResurrectionAscend$invokeTotemDeathProtection"));
-        assertTrue(deathAccessor.contains("@Accessor(\"dead\")"));
+        assertTrue(completionMixin.contains("@Inject(method = \"die\", at = @At(\"TAIL\"))"));
     }
 
     @Test

@@ -1,7 +1,6 @@
 package dev.rinchan.raiseresurrectionascend;
 
 import com.mojang.logging.LogUtils;
-import dev.rinchan.raiseresurrectionascend.mixin.LivingEntityDeathAccessor;
 import dev.rinchan.raiseresurrectionascend.mixin.LivingEntityTotemInvoker;
 import java.util.HashMap;
 import java.util.Map;
@@ -146,6 +145,14 @@ public final class RaiseResurrectionAscend {
         persistDownedState(player, state);
     }
 
+    /** Called only from the uncancelled tail of ServerPlayer.die. */
+    public static void observeNativeDeathCompletion(ServerPlayer player) {
+        DownedState state = DOWNED_PLAYERS.get(player.getUUID());
+        if (state != null && state.finalDeath.phase() == FinalDeathStateMachine.Phase.DISPATCHING) {
+            state.nativeDeathCompletion.markCompleted();
+        }
+    }
+
     /** Applies only an input transition; completion is counted exclusively by the server tick. */
     public static void handleGiveUpInput(ServerPlayer player, boolean pressed) {
         DownedState state = DOWNED_PLAYERS.get(player.getUUID());
@@ -276,8 +283,9 @@ public final class RaiseResurrectionAscend {
             totemTriggered = ((LivingEntityTotemInvoker) player)
                 .raiseResurrectionAscend$invokeTotemDeathProtection(downingSource);
             if (!totemTriggered) {
+                state.nativeDeathCompletion.reset();
                 player.die(downingSource);
-                deathCompleted = ((LivingEntityDeathAccessor) player).raiseResurrectionAscend$isDead();
+                deathCompleted = state.nativeDeathCompletion.completed();
             }
         } catch (RuntimeException exception) {
             LOGGER.error("Original-cause final-death dispatch failed for {}", player.getGameProfile().getName(), exception);
@@ -382,6 +390,7 @@ public final class RaiseResurrectionAscend {
         private final DowningCauseSnapshot cause;
         private final FinalDeathStateMachine finalDeath = new FinalDeathStateMachine();
         private final GiveUpHoldState giveUp = new GiveUpHoldState();
+        private final NativeDeathCompletion nativeDeathCompletion = new NativeDeathCompletion();
         private boolean boundaryDamagePending;
         private float lastSyncedThreshold = Float.NaN;
 
